@@ -81,6 +81,25 @@ Upload both `index.html` and `config.js` to the **same folder** on your web host
 
 All visual customization is done in `config.js` — no need to edit `index.html`.
 
+### Page Title
+
+The text shown in the browser tab and when the page is bookmarked:
+
+```js
+PAGE_TITLE: "OV Xpress – Tournament Rules",
+```
+
+### Favicon
+
+The icon shown in the browser tab and on the home screen when added to a mobile device:
+
+```js
+FAVICON: "apple-touch-icon.png",           // browser tab icon (.png, .ico, or .svg)
+APPLE_TOUCH_ICON: "apple-touch-icon.png",  // iOS/Android home screen icon (optional)
+```
+
+Both accept a filename in the same folder as `index.html` or a full URL. If `APPLE_TOUCH_ICON` is left empty (`""`), it automatically falls back to whatever `FAVICON` is set to. Set `FAVICON` to `""` to let the browser use its default.
+
 ### Logo
 
 Set the logo image displayed in the page header:

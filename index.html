@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OV Xpress – Tournament Rules</title>
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <title>Tournament Rules</title>
+  <link rel="icon" id="favicon" href="">
+  <link rel="apple-touch-icon" id="apple-touch-icon" href="">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 
@@ -687,6 +688,16 @@ function applyTheme() {
   r.style.setProperty('--header-gradient', t.headerGradient);
 }
 applyTheme();
+
+// ── META ──────────────────────────────────────────────────────
+(function applyMeta() {
+  if (CONFIG.PAGE_TITLE) document.title = CONFIG.PAGE_TITLE;
+  const favicon = document.getElementById('favicon');
+  const ati     = document.getElementById('apple-touch-icon');
+  if (CONFIG.FAVICON)          favicon.href = CONFIG.FAVICON;
+  if (CONFIG.APPLE_TOUCH_ICON) ati.href     = CONFIG.APPLE_TOUCH_ICON;
+  else if (CONFIG.FAVICON)     ati.href     = CONFIG.FAVICON; // fall back to favicon
+})();
 
 // ── LOGO ──────────────────────────────────────────────────────
 (function applyLogo() {

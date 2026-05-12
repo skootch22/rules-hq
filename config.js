@@ -11,6 +11,18 @@ const CONFIG = {
   // Then paste that URL below.
   SHEET_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSHjqLhfHnbzQ5R3ZakS-viAWqTx5ACd1j9ivZ9XSswZG2Y2IU25Yy9viuDV3chJERQqA8c6up4YquS/pub?gid=0&single=true&output=csv",
 
+  // ── PAGE ──────────────────────────────────────────────────────
+  // Text shown in the browser tab and when bookmarked.
+  PAGE_TITLE: "OV Xpress – Tournament Rules",
+
+  // ── FAVICON ───────────────────────────────────────────────────
+  // Browser tab icon. Can be a relative path or full URL.
+  // Supports .png, .ico, .svg. Leave empty ("") to use the browser default.
+  FAVICON: "apple-touch-icon.png",
+  // Icon used when a visitor adds the page to their iPhone/iPad home screen.
+  // Leave empty ("") to fall back to the favicon.
+  APPLE_TOUCH_ICON: "apple-touch-icon.png",
+
   // ── LOGO ──────────────────────────────────────────────────────
   // Path to the logo image shown in the page header.
   // Can be a relative path (e.g. "MrXpress.PNG") or a full URL.
