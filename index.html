@@ -454,7 +454,7 @@
 <body>
 
 <header>
-  <img src="MrXpress.PNG" alt="Ohio Valley Xpress Baseball" class="logo-icon">
+  <img id="header-logo" src="" alt="" class="logo-icon" style="display:none;">
   <h1>Tournament <span>Rules</span></h1>
   <p>Official Field Guide</p>
 </header>
@@ -687,6 +687,16 @@ function applyTheme() {
   r.style.setProperty('--header-gradient', t.headerGradient);
 }
 applyTheme();
+
+// ── LOGO ──────────────────────────────────────────────────────
+(function applyLogo() {
+  const img = document.getElementById('header-logo');
+  if (CONFIG.LOGO_SRC) {
+    img.src = CONFIG.LOGO_SRC;
+    img.alt = CONFIG.LOGO_ALT || '';
+    img.style.display = 'block';
+  }
+})();
 
 // ── DATA ──────────────────────────────────────────────────────
 let tournaments = [];

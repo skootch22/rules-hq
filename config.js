@@ -11,6 +11,13 @@ const CONFIG = {
   // Then paste that URL below.
   SHEET_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSHjqLhfHnbzQ5R3ZakS-viAWqTx5ACd1j9ivZ9XSswZG2Y2IU25Yy9viuDV3chJERQqA8c6up4YquS/pub?gid=0&single=true&output=csv",
 
+  // ── LOGO ──────────────────────────────────────────────────────
+  // Path to the logo image shown in the page header.
+  // Can be a relative path (e.g. "MrXpress.PNG") or a full URL.
+  // Leave LOGO_SRC empty ("") to hide the logo entirely.
+  LOGO_SRC: "MrXpress.PNG",
+  LOGO_ALT: "Ohio Valley Xpress Baseball",
+
   // ── THEME ─────────────────────────────────────────────────────
   // Built-in themes: "original-blue", "red-black"
   // Or use a custom object (see below).
