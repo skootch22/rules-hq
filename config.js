@@ -1,4 +1,12 @@
 // =============================================
+//  Tournament Rules Viewer
+//  © 2026 Scott Timberlake. All rights reserved.
+//  Unauthorized copying, reproduction, or distribution
+//  of this file, via any medium, is strictly prohibited
+//  without prior written permission.
+// =============================================
+
+// =============================================
 //  TOURNAMENT RULES - CONFIGURATION FILE
 //  Update SHEET_URL to point to your published
 //  Google Sheet (File > Share > Publish to web,
