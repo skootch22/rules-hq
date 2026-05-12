@@ -27,13 +27,13 @@ const CONFIG = {
   // Path to the logo image shown in the page header.
   // Can be a relative path (e.g. "MrXpress.PNG") or a full URL.
   // Leave LOGO_SRC empty ("") to hide the logo entirely.
-  LOGO_SRC: "RulesHQ_logo_transparent.PNG",
+  LOGO_SRC: "RulesHQ_logo_transparent.png",
   LOGO_ALT: "Ohio Valley Xpress Baseball",
 
   // ── THEME ─────────────────────────────────────────────────────
-  // Built-in themes: "original-blue", "red-black"
+  // Built-in themes: "original-blue", "red-black", "light-blue", "orange", "black-yellow", "black-white"
   // Or use a custom object (see below).
-  THEME: "original-blue",
+  THEME: "red-black",
 
   // Custom theme example (uncomment and fill in to use):
   // THEME: {
