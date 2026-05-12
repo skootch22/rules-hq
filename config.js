@@ -27,7 +27,7 @@ const CONFIG = {
   // Path to the logo image shown in the page header.
   // Can be a relative path (e.g. "MrXpress.PNG") or a full URL.
   // Leave LOGO_SRC empty ("") to hide the logo entirely.
-  LOGO_SRC: "MrXpress.PNG",
+  LOGO_SRC: "RulesHQ_logo_transparent.PNG",
   LOGO_ALT: "Ohio Valley Xpress Baseball",
 
   // ── THEME ─────────────────────────────────────────────────────
