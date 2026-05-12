@@ -9,7 +9,7 @@ const CONFIG = {
   // Publish your Google Sheet as CSV:
   //   File → Share → Publish to web → Sheet1 → CSV → Publish
   // Then paste that URL below.
-  SHEET_URL: "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/pub?gid=0&single=true&output=csv",
+  SHEET_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSHjqLhfHnbzQ5R3ZakS-viAWqTx5ACd1j9ivZ9XSswZG2Y2IU25Yy9viuDV3chJERQqA8c6up4YquS/pub?gid=0&single=true&output=csv",
 
   // ── THEME ─────────────────────────────────────────────────────
   // Built-in themes: "original-blue", "red-black"
