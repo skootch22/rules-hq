@@ -8,16 +8,19 @@
 
 // =============================================
 //  TOURNAMENT RULES - CONFIGURATION FILE
-//  Update SHEET_URL to point to your published
-//  Google Sheet (File > Share > Publish to web,
-//  choose CSV format for the correct sheet tab).
+//  Update SUPABASE_URL, SUPABASE_ANON_KEY, and
+//  TEAM_ID to connect to your Supabase project.
+//  Find these under Settings → API in Supabase.
 // =============================================
 
 const CONFIG = {
-  // Publish your Google Sheet as CSV:
-  //   File → Share → Publish to web → Sheet1 → CSV → Publish
-  // Then paste that URL below.
-  SHEET_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSHjqLhfHnbzQ5R3ZakS-viAWqTx5ACd1j9ivZ9XSswZG2Y2IU25Yy9viuDV3chJERQqA8c6up4YquS/pub?gid=0&single=true&output=csv",
+  // ── SUPABASE ──────────────────────────────────────────────────
+  // Project URL and anon key from Settings → API in your Supabase dashboard.
+  SUPABASE_URL:      "https://gyguhunknhrhhrviwgig.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_KtRPIPgmJ_OkOKSny8gEcw_wFxaaiMS",
+
+  // The UUID of this team's row in the teams table.
+  TEAM_ID: "54896758-d4aa-488b-8bd3-423d8df59db2",
 
   // ── PAGE ──────────────────────────────────────────────────────
   // Text shown in the browser tab and when bookmarked.
@@ -33,7 +36,7 @@ const CONFIG = {
 
   // ── LOGO ──────────────────────────────────────────────────────
   // Path to the logo image shown in the page header.
-  // Can be a relative path (e.g. "MrXpress.PNG") or a full URL.
+  // Can be a relative path (e.g. "logo.png") or a full URL.
   // Leave LOGO_SRC empty ("") to hide the logo entirely.
   LOGO_SRC: "RulesHQ_logo_transparent.png",
   LOGO_ALT: "Ohio Valley Xpress Baseball",
@@ -55,38 +58,4 @@ const CONFIG = {
   //   gold:             "#f5a623",  // stats highlight color
   //   headerGradient:   "linear-gradient(135deg, #0a0a0a 0%, #1a0000 60%, #2a0000 100%)",
   // },
-
-  // ── COLUMNS ───────────────────────────────────────────────────
-  // These are the exact header names the app looks for in your sheet's first row.
-  // Column order doesn't matter — but spelling and capitalization must match exactly.
-  COLUMNS: {
-    ACTIVE:            "Active",
-    TOURNAMENT:        "Tournament",
-    LOCATION:          "Location",
-    TIME_LIMIT:        "Time Limit",
-    INNINGS:           "Innings",
-    MERCY_RULE:        "Mercy Rule",
-    PITCHING_LIMITS:   "Pitching Limits",
-    BALKS:             "Balks",
-    COURTESY_RUNNER:   "Courtesy Runner",
-    EXTRA_INNING:      "Extra Innings",
-    TIE_BREAKER:       "Tie Breakers",
-    RULES_URL:         "Rules URL",
-    NOTES:             "Notes",
-    SORT_ORDER:        "Sort Order",
-    START_DATE:        "Start Date",
-    END_DATE:          "End Date",
-    DROPPED_THIRD:     "Dropped Third Strike",
-    STEALING:          "Stealing Rules",
-    FIELD_TYPE:        "Field Type",
-    SUBSTITUTION:      "Substitution Rules",
-    HOTEL_NAME:        "Hotel Name",
-    HOTEL_ADDRESS:     "Hotel Address",
-    HOTEL_URL:         "Hotel URL",
-    FIELD_ADDRESS:     "Field Address",
-    GUARANTEED_GAMES:  "Guaranteed Games",
-    GATE_FEE:          "Gate Fee",
-    NUM_TEAMS:         "Number of Teams",
-    TOURNAMENT_URL:    "Tournament URL",
-  }
 };

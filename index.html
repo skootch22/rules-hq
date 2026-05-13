@@ -14,6 +14,7 @@
   <link rel="apple-touch-icon" id="apple-touch-icon" href="">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 
   <style>
     :root {
@@ -611,7 +612,7 @@
 
 <footer>
  <img id="header-logo" src="" alt="" class="logo-icon" style="display:none;">
-<p>Data sourced from Google Sheets • refresh page to reload</p>
+<p>Powered by RulesHQ • refresh page to reload</p>
 </footer>
 
 <!-- Config (edit SHEET_URL here) -->
@@ -724,107 +725,56 @@ let tournaments = [];
 async function loadSheet() {
   setStatus('Loading tournament data…');
   try {
-    const res = await fetch(CONFIG.SHEET_URL);
+    const res = await fetch(
+      `${CONFIG.SUPABASE_URL}/rest/v1/tournaments?team_id=eq.${CONFIG.TEAM_ID}&active=eq.true&order=start_date.asc`,
+      {
+        headers: {
+          'apikey': CONFIG.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
+        }
+      }
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const csv  = await res.text();
-    const rows = parseCSV(csv);
+    const data = await res.json();
 
-    if (rows.length < 2) throw new Error('Sheet appears empty or has no data rows.');
+    if (!Array.isArray(data)) throw new Error('Unexpected response from database.');
 
-    // Build a map of header name → column index (case-insensitive, trimmed)
-    const headers = rows[0].map(h => h.trim().toLowerCase());
-    const col = name => headers.indexOf(name.trim().toLowerCase());
-    const get  = (r, name) => (r[col(name)] || '').trim();
-
-    // Validate required columns exist — Sort Order is optional, exclude from check
-    const C = CONFIG.COLUMNS;
-    const optionalCols = new Set(['SORT_ORDER', 'START_DATE', 'END_DATE', 'DROPPED_THIRD', 'STEALING', 'FIELD_TYPE', 'SUBSTITUTION', 'HOTEL_NAME', 'HOTEL_ADDRESS', 'HOTEL_URL', 'FIELD_ADDRESS', 'GUARANTEED_GAMES', 'GATE_FEE', 'NUM_TEAMS', 'TOURNAMENT_URL']);
-    const requiredCols = Object.entries(C)
-      .filter(([key]) => !optionalCols.has(key))
-      .filter(([, name]) => col(name) === -1)
-      .map(([, name]) => name);
-    if (requiredCols.length) throw new Error(`Missing sheet columns: ${requiredCols.join(', ')}`);
-
-    tournaments = rows.slice(1)
-      .filter(r => {
-        const active = get(r, C.ACTIVE).toLowerCase();
-        return active === 'true' || active === 'yes' || active === '1';
-      })
-      .map(r => ({
-        name:           get(r, C.TOURNAMENT),
-        location:       get(r, C.LOCATION),
-        timeLimit:      get(r, C.TIME_LIMIT),
-        innings:        get(r, C.INNINGS),
-        mercyRule:      get(r, C.MERCY_RULE),
-        pitchingLimits: get(r, C.PITCHING_LIMITS),
-        balks:          get(r, C.BALKS),
-        courtesyRunner: get(r, C.COURTESY_RUNNER),
-        extraInning:    get(r, C.EXTRA_INNING),
-        tieBreaker:     get(r, C.TIE_BREAKER),
-        rulesUrl:       get(r, C.RULES_URL),
-        notes:          get(r, C.NOTES),
-        sortOrder:      parseFloat(get(r, C.SORT_ORDER)) || 9999,
-        startDate:      get(r, C.START_DATE),
-        endDate:        get(r, C.END_DATE),
-        droppedThird:   get(r, C.DROPPED_THIRD),
-        stealing:       get(r, C.STEALING),
-        fieldType:      get(r, C.FIELD_TYPE).toLowerCase(),
-        substitution:   get(r, C.SUBSTITUTION),
-        hotelName:      get(r, C.HOTEL_NAME),
-        hotelAddress:   get(r, C.HOTEL_ADDRESS),
-        fieldAddress:     get(r, C.FIELD_ADDRESS),
-        guaranteedGames:  get(r, C.GUARANTEED_GAMES),
-        gateFee:          get(r, C.GATE_FEE),
-        numTeams:         get(r, C.NUM_TEAMS),
-        tournamentUrl:    get(r, C.TOURNAMENT_URL),
-      }))
-      .filter(t => t.name)
-      .sort((a, b) => {
-        const dateA = a.startDate ? new Date(a.startDate) : null;
-        const dateB = b.startDate ? new Date(b.startDate) : null;
-        if (dateA && dateB) return dateA - dateB;           // both have dates: sort chronologically
-        if (dateA) return -1;                               // only a has a date: a comes first
-        if (dateB) return 1;                                // only b has a date: b comes first
-        const orderDiff = a.sortOrder - b.sortOrder;        // neither has a date: use Sort Order
-        if (orderDiff !== 0) return orderDiff;
-        return a.name.localeCompare(b.name);                // final fallback: alphabetical
-      });
+    tournaments = data.map(r => ({
+      name:            r.tournament            || '',
+      location:        r.location              || '',
+      timeLimit:       r.time_limit            || '',
+      innings:         r.innings               ? String(r.innings) : '',
+      mercyRule:       r.mercy_rule            || '',
+      pitchingLimits:  r.pitching_limits       || '',
+      balks:           r.balks                 || '',
+      courtesyRunner:  r.courtesy_runner       || '',
+      extraInning:     r.extra_innings         || '',
+      tieBreaker:      r.tie_breakers          || '',
+      rulesUrl:        r.rules_url             || '',
+      notes:           r.notes                 || '',
+      startDate:       r.start_date            || '',
+      endDate:         r.end_date              || '',
+      droppedThird:    r.dropped_third_strike  ? 'Yes' : '',
+      stealing:        r.stealing_rules        || '',
+      fieldType:       (r.field_type           || '').toLowerCase(),
+      substitution:    r.substitution_rules    || '',
+      hotelName:       r.hotel_name            || '',
+      hotelAddress:    r.hotel_address         || '',
+      hotelUrl:        r.hotel_url             || '',
+      fieldAddress:    r.field_address         || '',
+      guaranteedGames: r.guaranteed_games      ? String(r.guaranteed_games) : '',
+      gateFee:         r.gate_fee              || '',
+      numTeams:        r.num_teams             ? String(r.num_teams) : '',
+      tournamentUrl:   r.tournament_url        || '',
+    })).filter(t => t.name);
 
     populateDropdown();
     checkDeepLink();
     setStatus('');
   } catch (err) {
-    setStatus('⚠ Could not load sheet data. Check config.js SHEET_URL. (' + err.message + ')', true);
+    setStatus('⚠ Could not load tournament data. (' + err.message + ')', true);
     console.error(err);
   }
-}
-
-function parseCSV(text) {
-  const rows = [];
-  const lines = text.split(/\r?\n/);
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    rows.push(parseCSVLine(line));
-  }
-  return rows;
-}
-
-function parseCSVLine(line) {
-  const result = [];
-  let cur = '', inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
-      else inQ = !inQ;
-    } else if (ch === ',' && !inQ) {
-      result.push(cur); cur = '';
-    } else {
-      cur += ch;
-    }
-  }
-  result.push(cur);
-  return result;
 }
 
 // ── UI ────────────────────────────────────────────────────────
@@ -963,15 +913,15 @@ function showRules(t) {
     ? '<span class="badge-value">' + escapeHTML(t.courtesyRunner) + '</span>'
     : '<em style="color:var(--muted)">Not specified</em>';
 
-  setHTML('r-mercy',      t.mercyRule);
-  setHTML('r-pitching',   t.pitchingLimits);
-  setHTML('r-extra',      t.extraInning);
-  setHTML('r-tiebreaker', t.tieBreaker);
+  document.getElementById('r-mercy').innerHTML      = renderMarkdown(t.mercyRule);
+  document.getElementById('r-pitching').innerHTML   = renderMarkdown(t.pitchingLimits);
+  document.getElementById('r-extra').innerHTML      = renderMarkdown(t.extraInning);
+  document.getElementById('r-tiebreaker').innerHTML = renderMarkdown(t.tieBreaker);
 
   // Substitution Rules (optional, full-width)
   const subCard = document.getElementById('r-substitution-card');
   if (t.substitution) {
-    document.getElementById('r-substitution').innerHTML = t.substitution;
+    document.getElementById('r-substitution').innerHTML = renderMarkdown(t.substitution);
     subCard.style.display = 'block';
   } else {
     subCard.style.display = 'none';
@@ -982,7 +932,7 @@ function showRules(t) {
   const droppedCard  = document.getElementById('r-dropped-card');
   const baserunningRow = document.getElementById('r-baserunning-row');
   if (t.stealing) {
-    document.getElementById('r-stealing').innerHTML = t.stealing;
+    document.getElementById('r-stealing').innerHTML      = renderMarkdown(t.stealing);
     stealingCard.style.display = 'block';
   } else {
     stealingCard.style.display = 'none';
@@ -998,7 +948,7 @@ function showRules(t) {
   // Notes
   const notesCard = document.getElementById('r-notes-card');
   if (t.notes) {
-    document.getElementById('r-notes').innerHTML = t.notes;
+    document.getElementById('r-notes').innerHTML         = renderMarkdown(t.notes);
     notesCard.style.display = 'block';
   } else {
     notesCard.style.display = 'none';
@@ -1025,6 +975,11 @@ function showRules(t) {
 
 function escapeHTML(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderMarkdown(val) {
+  if (!val) return '<em style="color:var(--muted)">Not specified</em>';
+  return marked.parse(val);
 }
 
 document.getElementById('view-btn').addEventListener('click', () => {
