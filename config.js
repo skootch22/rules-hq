@@ -30,7 +30,7 @@ const CONFIG = {
 
   // ── PAGE ──────────────────────────────────────────────────────
   // Text shown in the browser tab and when bookmarked.
-  PAGE_TITLE: "OV Xpress – Tournament Rules",
+  PAGE_TITLE: "Ohio Valleu Xpress – RulesHQ",
 
   // ── FAVICON ───────────────────────────────────────────────────
   // Browser tab icon. Can be a relative path or full URL.
