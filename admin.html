@@ -14,19 +14,19 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --navy:    #0a0a0a;
-      --navy2:   #1a1010;
-      --card-bg: #111111;
-      --border:  #2a1515;
-      --primary: #e53e3e;
-      --primary2:#c53030;
+      --navy:    #0a1628;
+      --navy2:   #112240;
+      --card-bg: #162033;
+      --border:  #1e3054;
+      --primary: #38bdf8;
+      --primary2:#0ea5e9;
       --gold:    #f5a623;
       --light:   #e8edf5;
       --muted:   #8899b0;
       --red:     #e03e3e;
       --green:   #48bb78;
       --radius:  10px;
-      --header-gradient: linear-gradient(135deg, #0a0a0a 0%, #1a0505 60%, #2d0808 100%);
+      --header-gradient: linear-gradient(135deg, #0a1628 0%, #0d2a4a 60%, #0e3d6e 100%);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -701,6 +701,85 @@
 
 <script src="config.js"></script>
 <script>
+// ── THEMES ────────────────────────────────────────────────────
+const THEMES = {
+  "original-blue": {
+    primary:        "#38bdf8",
+    primary2:       "#0ea5e9",
+    navy:           "#0a1628",
+    navy2:          "#112240",
+    cardBg:         "#162033",
+    border:         "#1e3054",
+    gold:           "#f5a623",
+    headerGradient: "linear-gradient(135deg, #0a1628 0%, #0d2a4a 60%, #0e3d6e 100%)",
+  },
+  "red-black": {
+    primary:        "#e53e3e",
+    primary2:       "#c53030",
+    navy:           "#0a0a0a",
+    navy2:          "#1a1010",
+    cardBg:         "#111111",
+    border:         "#2a1515",
+    gold:           "#f5a623",
+    headerGradient: "linear-gradient(135deg, #0a0a0a 0%, #1a0505 60%, #2d0808 100%)",
+  },
+  "light-blue": {
+    primary:        "#93c5fd",
+    primary2:       "#60a5fa",
+    navy:           "#0f172a",
+    navy2:          "#1e2d47",
+    cardBg:         "#162036",
+    border:         "#2a3f5f",
+    gold:           "#fbbf24",
+    headerGradient: "linear-gradient(135deg, #0f172a 0%, #1a2d4a 60%, #1e3a6e 100%)",
+  },
+  "orange": {
+    primary:        "#f97316",
+    primary2:       "#ea6b0a",
+    navy:           "#0a0a0a",
+    navy2:          "#1a1208",
+    cardBg:         "#111108",
+    border:         "#2a1e08",
+    gold:           "#fbbf24",
+    headerGradient: "linear-gradient(135deg, #0a0a0a 0%, #1a0e00 60%, #2d1800 100%)",
+  },
+  "black-yellow": {
+    primary:        "#facc15",
+    primary2:       "#eab308",
+    navy:           "#0a0a0a",
+    navy2:          "#141400",
+    cardBg:         "#111100",
+    border:         "#2a2800",
+    gold:           "#facc15",
+    headerGradient: "linear-gradient(135deg, #0a0a0a 0%, #141200 60%, #1f1c00 100%)",
+  },
+  "black-white": {
+    primary:        "#ffffff",
+    primary2:       "#d4d4d4",
+    navy:           "#0a0a0a",
+    navy2:          "#141414",
+    cardBg:         "#111111",
+    border:         "#2a2a2a",
+    gold:           "#ffffff",
+    headerGradient: "linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 60%, #222222 100%)",
+  },
+};
+
+(function applyTheme() {
+  const t = typeof CONFIG.THEME === 'string'
+    ? THEMES[CONFIG.THEME] || THEMES['original-blue']
+    : CONFIG.THEME;
+  const r = document.documentElement;
+  r.style.setProperty('--primary',          t.primary);
+  r.style.setProperty('--primary2',         t.primary2);
+  r.style.setProperty('--navy',             t.navy);
+  r.style.setProperty('--navy2',            t.navy2);
+  r.style.setProperty('--card-bg',          t.cardBg);
+  r.style.setProperty('--border',           t.border);
+  r.style.setProperty('--gold',             t.gold);
+  r.style.setProperty('--header-gradient',  t.headerGradient);
+})();
+
 // ── AUTH ──────────────────────────────────────────────────────
 const SESSION_KEY = 'ruleshq_admin_auth';
 
