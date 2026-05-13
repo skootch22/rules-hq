@@ -22,6 +22,12 @@ const CONFIG = {
   // The UUID of this team's row in the teams table.
   TEAM_ID: "54896758-d4aa-488b-8bd3-423d8df59db2",
 
+  // ── ADMIN ─────────────────────────────────────────────────────
+  // Password to access the admin panel (admin.html).
+  // Note: this file is public — do not reuse sensitive passwords.
+  ADMIN_PASSWORD: "RulesHQDem0",
+
+
   // ── PAGE ──────────────────────────────────────────────────────
   // Text shown in the browser tab and when bookmarked.
   PAGE_TITLE: "OV Xpress – Tournament Rules",
