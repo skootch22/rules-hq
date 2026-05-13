@@ -44,7 +44,7 @@ const CONFIG = {
   // ── THEME ─────────────────────────────────────────────────────
   // Built-in themes: "original-blue", "red-black", "light-blue", "orange", "black-yellow", "black-white"
   // Or use a custom object (see below).
-  THEME: "red-black",
+  THEME: "black-white",
 
   // Custom theme example (uncomment and fill in to use):
   // THEME: {
