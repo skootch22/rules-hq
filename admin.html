@@ -765,6 +765,19 @@ const THEMES = {
     headerGradient: "linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 60%, #222222 100%)",
     primaryText:    "#0a0a0a",
   },
+  "white-black": {
+    primary:        "#1a1a1a",
+    primary2:       "#333333",
+    navy:           "#f5f5f5",
+    navy2:          "#ebebeb",
+    cardBg:         "#ffffff",
+    border:         "#d4d4d4",
+    gold:           "#1a1a1a",
+    headerGradient: "linear-gradient(135deg, #e8e8e8 0%, #f0f0f0 60%, #f8f8f8 100%)",
+    primaryText:    "#ffffff",
+    light:          "#1a1a1a",
+    muted:          "#666666",
+  },
 };
 
 (function applyTheme() {
@@ -781,6 +794,8 @@ const THEMES = {
   r.style.setProperty('--gold',             t.gold);
   r.style.setProperty('--header-gradient',  t.headerGradient);
   r.style.setProperty('--primary-text',     t.primaryText || '#ffffff');
+  if (t.light) r.style.setProperty('--light', t.light);
+  if (t.muted) r.style.setProperty('--muted', t.muted);
 })();
 
 // ── AUTH ──────────────────────────────────────────────────────
