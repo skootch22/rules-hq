@@ -456,10 +456,34 @@
     /* ── FOOTER ── */
     footer {
       text-align: center;
-      color: var(--border);
+      color: var(--muted);
       font-size: .75rem;
       margin-top: 3rem;
+      padding-bottom: 2rem;
       letter-spacing: .07em;
+    }
+    .footer-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .5rem;
+      margin-bottom: .75rem;
+    }
+    .footer-brand img {
+      height: 32px;
+      width: auto;
+      opacity: .45;
+      transition: opacity .2s;
+    }
+    .footer-brand img:hover { opacity: .75; }
+    .footer-brand span {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: .6;
     }
   </style>
 </head>
@@ -492,11 +516,11 @@
     <span class="icon">🏆</span>
     <div>
       <h2 id="r-name"></h2>
-      <a id="r-location" style="color:rgba(255,255,255,.75); font-size:.8rem; font-weight:500; margin-top:.2rem; display:block; text-decoration:none;"></a>
+      <a id="r-location" style="color:var(--title-bar-text, rgba(255,255,255,.75)); opacity:.85; font-size:.8rem; font-weight:500; margin-top:.2rem; display:block; text-decoration:none;"></a>
       <div class="t-dates" id="r-dates" style="display:none;"></div>
       <div class="info-row" id="r-info-row" style="display:none;"></div>
       <div id="r-field-type" style="display:none;"></div>
-      <div id="r-gate-fee" style="display:none; margin-top:.3rem; font-size:.75rem; color:rgba(255,255,255,.85); font-weight:600;">🎟️ Gate Fee: <span id="r-gate-fee-value"></span></div>
+      <div id="r-gate-fee" style="display:none; margin-top:.3rem; font-size:.75rem; color:var(--title-bar-text, rgba(255,255,255,.85)); opacity:.9; font-weight:600;">🎟️ Gate Fee: <span id="r-gate-fee-value"></span></div>
     </div>
   </div>
 
@@ -615,8 +639,11 @@
 </div><!-- /rules-panel -->
 
 <footer>
- <img id="header-logo" src="" alt="" class="logo-icon" style="display:none;">
-<p>Powered by RulesHQ • refresh page to reload</p>
+  <div class="footer-brand" id="footer-brand" style="display:none;">
+    <img id="footer-brand-img" src="" alt="" />
+    <span id="footer-brand-text"></span>
+  </div>
+  <p>Powered by RulesHQ • refresh page to reload</p>
 </footer>
 
 <!-- Config (edit SHEET_URL here) -->
@@ -740,6 +767,22 @@ applyTheme();
     img.src = CONFIG.LOGO_SRC;
     img.alt = CONFIG.LOGO_ALT || '';
     img.style.display = 'block';
+  }
+})();
+
+// ── FOOTER BRAND ──────────────────────────────────────────────
+(function applyFooterBrand() {
+  const brand = document.getElementById('footer-brand');
+  const img   = document.getElementById('footer-brand-img');
+  const text  = document.getElementById('footer-brand-text');
+  const src   = CONFIG.BRAND_LOGO_SRC || CONFIG.LOGO_SRC || '';
+  const label = CONFIG.BRAND_LOGO_TEXT || '';
+  if (src || label) {
+    if (src)   { img.src = src; img.alt = label || ''; img.style.display = 'block'; }
+    else         { img.style.display = 'none'; }
+    if (label) { text.textContent = label; text.style.display = 'block'; }
+    else         { text.style.display = 'none'; }
+    brand.style.display = 'flex';
   }
 })();
 

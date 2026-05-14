@@ -467,6 +467,34 @@
       color: var(--muted);
       font-size: .9rem;
     }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-bottom: 2rem;
+    }
+    .footer-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .5rem;
+    }
+    .footer-brand img {
+      height: 32px;
+      width: auto;
+      opacity: .45;
+      transition: opacity .2s;
+    }
+    .footer-brand img:hover { opacity: .75; }
+    .footer-brand span {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: .6;
+    }
   </style>
 </head>
 <body>
@@ -1104,8 +1132,32 @@ function escapeAttr(str) {
   return String(str).replace(/'/g, "\\'");
 }
 
+// ── FOOTER BRAND ──────────────────────────────────────────────
+(function applyFooterBrand() {
+  const brand = document.getElementById('footer-brand');
+  const img   = document.getElementById('footer-brand-img');
+  const text  = document.getElementById('footer-brand-text');
+  const src   = CONFIG.BRAND_LOGO_SRC || CONFIG.LOGO_SRC || '';
+  const label = CONFIG.BRAND_LOGO_TEXT || '';
+  if (src || label) {
+    if (src)   { img.src = src; img.alt = label || ''; img.style.display = 'block'; }
+    else         { img.style.display = 'none'; }
+    if (label) { text.textContent = label; text.style.display = 'block'; }
+    else         { text.style.display = 'none'; }
+    brand.style.display = 'flex';
+  }
+})();
+
 // ── INIT ──────────────────────────────────────────────────────
 if (isLoggedIn()) showAdmin();
 </script>
+
+<footer>
+  <div class="footer-brand" id="footer-brand" style="display:none;">
+    <img id="footer-brand-img" src="" alt="" style="display:none;" />
+    <span id="footer-brand-text" style="display:none;"></span>
+  </div>
+</footer>
+
 </body>
 </html>
