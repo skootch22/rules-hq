@@ -172,7 +172,7 @@
 
     .btn-primary {
       background: var(--primary);
-      color: #fff;
+      color: var(--primary-text, #fff);
       border: none;
       border-radius: var(--radius);
       padding: .55rem 1.1rem;
@@ -752,6 +752,7 @@ const THEMES = {
     border:         "#2a2800",
     gold:           "#facc15",
     headerGradient: "linear-gradient(135deg, #0a0a0a 0%, #141200 60%, #1f1c00 100%)",
+    primaryText:    "#0a0a0a",
   },
   "black-white": {
     primary:        "#ffffff",
@@ -762,6 +763,7 @@ const THEMES = {
     border:         "#2a2a2a",
     gold:           "#ffffff",
     headerGradient: "linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 60%, #222222 100%)",
+    primaryText:    "#0a0a0a",
   },
 };
 
@@ -778,6 +780,7 @@ const THEMES = {
   r.style.setProperty('--border',           t.border);
   r.style.setProperty('--gold',             t.gold);
   r.style.setProperty('--header-gradient',  t.headerGradient);
+  r.style.setProperty('--primary-text',     t.primaryText || '#ffffff');
 })();
 
 // ── AUTH ──────────────────────────────────────────────────────
