@@ -228,18 +228,20 @@
       font-weight: 800;
       letter-spacing: .04em;
       text-transform: uppercase;
-      color: #fff;
+      color: var(--title-bar-text, #fff);
       line-height: 1.1;
     }
     .t-title-bar .location {
       font-size: .8rem;
-      color: rgba(255,255,255,.75);
+      color: var(--title-bar-text, rgba(255,255,255,.75));
+      opacity: .8;
       margin-top: .2rem;
       font-weight: 500;
     }
     .t-title-bar .t-dates {
       font-size: .8rem;
-      color: rgba(255,255,255,.9);
+      color: var(--title-bar-text, rgba(255,255,255,.9));
+      opacity: .9;
       margin-top: .25rem;
       font-weight: 600;
       display: flex;
@@ -247,10 +249,12 @@
       gap: .4rem;
       flex-wrap: wrap;
     }
-    .t-title-bar .t-dates .date-sep {      color: rgba(255,255,255,.4);
+    .t-title-bar .t-dates .date-sep {
+      color: var(--title-bar-text, #fff);
+      opacity: .4;
       font-weight: 400;
     }
-    .t-title-bar .t-dates .games-dot { color: rgba(255,255,255,.35); }
+    .t-title-bar .t-dates .games-dot { color: var(--title-bar-text, #fff); opacity: .35; }
     .games-badge-inline {
       display: inline-flex; align-items: center; gap: .25rem;
       background: rgba(0,0,0,.25);
@@ -259,7 +263,7 @@
       padding: .1rem .45rem;
       font-size: .7rem; font-weight: 700;
       letter-spacing: .04em; text-transform: uppercase;
-      color: rgba(255,255,255,.95);
+      color: var(--title-bar-text, rgba(255,255,255,.95));
     }
     .info-badge {
       display: inline-flex; align-items: center; gap: .25rem;
@@ -682,6 +686,7 @@ const THEMES = {
     gold:            "#ffffff",
     headerGradient:  "linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 60%, #222222 100%)",
     primaryText:     "#0a0a0a",
+    titleBarText:    "#0a0a0a",
   },
   "white-black": {
     primary:         "#1a1a1a",
@@ -712,6 +717,7 @@ function applyTheme() {
   r.style.setProperty('--gold',         t.gold);
   r.style.setProperty('--header-gradient', t.headerGradient);
   r.style.setProperty('--primary-text', t.primaryText || '#ffffff');
+  r.style.setProperty('--title-bar-text', t.titleBarText || '#ffffff');
   if (t.light) r.style.setProperty('--light', t.light);
   if (t.muted) r.style.setProperty('--muted', t.muted);
 }

@@ -764,6 +764,7 @@ const THEMES = {
     gold:           "#ffffff",
     headerGradient: "linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 60%, #222222 100%)",
     primaryText:    "#0a0a0a",
+    titleBarText:   "#0a0a0a",
   },
   "white-black": {
     primary:        "#1a1a1a",
@@ -794,6 +795,7 @@ const THEMES = {
   r.style.setProperty('--gold',             t.gold);
   r.style.setProperty('--header-gradient',  t.headerGradient);
   r.style.setProperty('--primary-text',     t.primaryText || '#ffffff');
+  r.style.setProperty('--title-bar-text',   t.titleBarText || '#ffffff');
   if (t.light) r.style.setProperty('--light', t.light);
   if (t.muted) r.style.setProperty('--muted', t.muted);
 })();
