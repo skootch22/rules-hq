@@ -52,7 +52,7 @@ const CONFIG = {
   // BRAND_LOGO_SRC defaults to LOGO_SRC if left empty.
   // BRAND_LOGO_TEXT shows a text label below the logo (e.g. "Powered by RulesHQ").
   // Set both to "" to hide the footer brand entirely.
-  BRAND_LOGO_SRC:  "Logos/RulesHQ_logo_RED_transparent.png",   // e.g. "RulesHQ_logo_transparent.png" or leave "" to use LOGO_SRC
+  BRAND_LOGO_SRC:  "Logos/RulesHQ_RED_logo_transparent.png",   // e.g. "RulesHQ_logo_transparent.png" or leave "" to use LOGO_SRC
   BRAND_LOGO_TEXT: "Powered by RulesHQ",
 
   // ── THEME ─────────────────────────────────────────────────────
