@@ -140,7 +140,7 @@
       padding: .75rem 1rem;
       font-family: 'Barlow', sans-serif;
       font-size: 1rem;
-      margin-bottom: 1rem;
+      margin-bottom: .75rem;
       transition: border-color .2s;
     }
     .login-card input:focus { outline: none; border-color: var(--primary); }
@@ -512,8 +512,9 @@
   <div class="login-card">
     <div class="lock-icon">🔐</div>
     <h2>Admin Access</h2>
-    <p>Enter your admin password to manage tournaments.</p>
+    <p>Sign in with your admin email and password.</p>
     <div class="login-error" id="login-error"></div>
+    <input type="email"    id="email-input"    placeholder="Email"    autocomplete="email" />
     <input type="password" id="password-input" placeholder="Password" autocomplete="current-password" />
     <button class="btn-primary" id="btn-login" style="width:100%;">Log In</button>
   </div>
@@ -829,71 +830,111 @@ const THEMES = {
 })();
 
 // ── AUTH ──────────────────────────────────────────────────────
-const SESSION_KEY = 'ruleshq_admin_auth';
+let sbSession = null;
 
-function isLoggedIn() {
-  return sessionStorage.getItem(SESSION_KEY) === 'true';
+async function getSession() {
+  try {
+    const res = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        'apikey':        CONFIG.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${localStorage.getItem('sb_access_token') || ''}`
+      }
+    });
+    if (!res.ok) return null;
+    const user = await res.json();
+    return user?.id ? { access_token: localStorage.getItem('sb_access_token'), user } : null;
+  } catch { return null; }
 }
 
-function login(password) {
-  if (password === CONFIG.ADMIN_PASSWORD) {
-    sessionStorage.setItem(SESSION_KEY, 'true');
-    showAdmin();
-    return true;
-  }
-  return false;
+async function signIn(email, password) {
+  const res = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: {
+      'apikey':       CONFIG.SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed.');
+  localStorage.setItem('sb_access_token',  data.access_token);
+  localStorage.setItem('sb_refresh_token', data.refresh_token);
+  sbSession = data;
+  return data;
 }
 
-function logout() {
-  sessionStorage.removeItem(SESSION_KEY);
+async function signOut() {
+  await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/logout`, {
+    method: 'POST',
+    headers: {
+      'apikey':        CONFIG.SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${localStorage.getItem('sb_access_token') || ''}`
+    }
+  }).catch(() => {});
+  localStorage.removeItem('sb_access_token');
+  localStorage.removeItem('sb_refresh_token');
+  sbSession = null;
   showLogin();
 }
 
+function getAuthHeaders() {
+  return {
+    'apikey':        CONFIG.SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${sbSession?.access_token || localStorage.getItem('sb_access_token') || ''}`,
+    'Content-Type':  'application/json',
+    'Prefer':        'return=representation'
+  };
+}
+
 function showLogin() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('admin-screen').style.display = 'none';
-  document.getElementById('btn-logout').style.display = 'none';
-  document.getElementById('password-input').value = '';
-  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-screen').style.display  = 'flex';
+  document.getElementById('admin-screen').style.display  = 'none';
+  document.getElementById('btn-logout').style.display    = 'none';
+  document.getElementById('email-input').value           = '';
+  document.getElementById('password-input').value        = '';
+  document.getElementById('login-error').textContent     = '';
 }
 
 function showAdmin() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('admin-screen').style.display = 'block';
-  document.getElementById('btn-logout').style.display = 'block';
+  document.getElementById('btn-logout').style.display   = 'block';
   loadTournaments();
 }
 
 // Login events
 document.getElementById('btn-login').addEventListener('click', handleLogin);
-document.getElementById('password-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') handleLogin();
-});
+document.getElementById('email-input').addEventListener('keydown',    e => { if (e.key === 'Enter') document.getElementById('password-input').focus(); });
+document.getElementById('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
 
-function handleLogin() {
-  const pw = document.getElementById('password-input').value;
-  const err = document.getElementById('login-error');
-  if (!pw) { err.textContent = 'Please enter a password.'; return; }
-  if (!login(pw)) {
-    err.textContent = 'Incorrect password.';
+async function handleLogin() {
+  const email = document.getElementById('email-input').value.trim();
+  const pw    = document.getElementById('password-input').value;
+  const err   = document.getElementById('login-error');
+  const btn   = document.getElementById('btn-login');
+  if (!email || !pw) { err.textContent = 'Please enter your email and password.'; return; }
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  err.textContent = '';
+  try {
+    await signIn(email, pw);
+    showAdmin();
+  } catch (e) {
+    err.textContent = e.message;
     document.getElementById('password-input').value = '';
     document.getElementById('password-input').focus();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Log In';
   }
 }
 
-document.getElementById('btn-logout').addEventListener('click', logout);
+document.getElementById('btn-logout').addEventListener('click', signOut);
 
 // ── SUPABASE HELPERS ──────────────────────────────────────────
-const SB_HEADERS = {
-  'apikey': CONFIG.SUPABASE_ANON_KEY,
-  'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-  'Content-Type': 'application/json',
-  'Prefer': 'return=representation'
-};
-
 async function sbFetch(path, options = {}) {
   const res = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${path}`, {
-    headers: SB_HEADERS,
+    headers: getAuthHeaders(),
     ...options
   });
   if (!res.ok) {
@@ -1149,7 +1190,13 @@ function escapeAttr(str) {
 })();
 
 // ── INIT ──────────────────────────────────────────────────────
-if (isLoggedIn()) showAdmin();
+(async () => {
+  const session = await getSession();
+  if (session) {
+    sbSession = session;
+    showAdmin();
+  }
+})();
 </script>
 
 <footer>
