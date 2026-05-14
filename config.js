@@ -35,10 +35,10 @@ const CONFIG = {
   // ── FAVICON ───────────────────────────────────────────────────
   // Browser tab icon. Can be a relative path or full URL.
   // Supports .png, .ico, .svg. Leave empty ("") to use the browser default.
-  FAVICON: "Favicons/RulesHQ_favicon.PNG",
+  FAVICON: "Favicons/MrXpressFavicon.PNG",
   // Icon used when a visitor adds the page to their iPhone/iPad home screen.
   // Leave empty ("") to fall back to the favicon.
-  APPLE_TOUCH_ICON: "Favicons/RulesHQ_favicon.PNG",
+  APPLE_TOUCH_ICON: "Favicons/MrXpressFavicon.PNG",
 
   // ── LOGO ──────────────────────────────────────────────────────
   // Path to the logo image shown in the page header.
