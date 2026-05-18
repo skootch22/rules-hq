@@ -933,9 +933,13 @@ document.getElementById('btn-logout').addEventListener('click', signOut);
 
 // ── SUPABASE HELPERS ──────────────────────────────────────────
 async function sbFetch(path, options = {}) {
+  const { headers: optHeaders, ...restOptions } = options;
   const res = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${path}`, {
-    headers: getAuthHeaders(),
-    ...options
+    ...restOptions,
+    headers: {
+      ...getAuthHeaders(),
+      ...(optHeaders || {}),
+    },
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -1109,6 +1113,7 @@ document.getElementById('btn-save').addEventListener('click', async () => {
     if (editingId) {
       await sbFetch(`tournaments?id=eq.${editingId}`, {
         method: 'PATCH',
+        headers: { 'Prefer': 'return=minimal' },
         body: JSON.stringify(rec)
       });
       showToast('Tournament updated.', 'success');
