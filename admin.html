@@ -1149,11 +1149,15 @@ document.getElementById('btn-save').addEventListener('click', async () => {
   try {
     if (editingId) {
       const { team_id, ...patchRec } = rec;
-      await sbFetch(`tournaments?id=eq.${editingId}`, {
+      console.log('PATCH id:', editingId);
+      console.log('PATCH body:', JSON.stringify(patchRec, null, 2));
+      console.log('PATCH headers:', getAuthHeaders());
+      const result = await sbFetch(`tournaments?id=eq.${editingId}`, {
         method: 'PATCH',
         headers: { 'Prefer': 'return=minimal' },
         body: JSON.stringify(patchRec)
       });
+      console.log('PATCH result:', result);
       showToast('Tournament updated.', 'success');
     } else {
       await sbFetch('tournaments', {
@@ -1216,22 +1220,6 @@ function escapeAttr(str) {
   return String(str).replace(/'/g, "\\'");
 }
 
-// ── FOOTER BRAND ──────────────────────────────────────────────
-(function applyFooterBrand() {
-  const brand = document.getElementById('footer-brand');
-  const img   = document.getElementById('footer-brand-img');
-  const text  = document.getElementById('footer-brand-text');
-  const src   = CONFIG.BRAND_LOGO_SRC || CONFIG.LOGO_SRC || '';
-  const label = CONFIG.BRAND_LOGO_TEXT || '';
-  if (src || label) {
-    if (src)   { img.src = src; img.alt = label || ''; img.style.display = 'block'; }
-    else         { img.style.display = 'none'; }
-    if (label) { text.textContent = label; text.style.display = 'block'; }
-    else         { text.style.display = 'none'; }
-    brand.style.display = 'flex';
-  }
-})();
-
 // ── INIT ──────────────────────────────────────────────────────
 (async () => {
   const session = await getSession();
@@ -1249,5 +1237,22 @@ function escapeAttr(str) {
   </div>
 </footer>
 
-</body>
-</html>
+<script>
+// ── FOOTER BRAND ──────────────────────────────────────────────
+// Runs after footer HTML is in the DOM
+(function applyFooterBrand() {
+  const brand = document.getElementById('footer-brand');
+  const img   = document.getElementById('footer-brand-img');
+  const text  = document.getElementById('footer-brand-text');
+  if (!brand || !img || !text) return;
+  const src   = CONFIG.BRAND_LOGO_SRC || CONFIG.LOGO_SRC || '';
+  const label = CONFIG.BRAND_LOGO_TEXT || '';
+  if (src || label) {
+    if (src)   { img.src = src; img.alt = label || ''; img.style.display = 'block'; }
+    else         { img.style.display = 'none'; }
+    if (label) { text.textContent = label; text.style.display = 'block'; }
+    else         { text.style.display = 'none'; }
+    brand.style.display = 'flex';
+  }
+})();
+</script>
