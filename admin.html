@@ -1148,10 +1148,11 @@ document.getElementById('btn-save').addEventListener('click', async () => {
 
   try {
     if (editingId) {
+      const { team_id, ...patchRec } = rec;
       await sbFetch(`tournaments?id=eq.${editingId}`, {
         method: 'PATCH',
         headers: { 'Prefer': 'return=minimal' },
-        body: JSON.stringify(rec)
+        body: JSON.stringify(patchRec)
       });
       showToast('Tournament updated.', 'success');
     } else {
