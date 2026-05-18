@@ -856,9 +856,11 @@ async function signIn(email, password) {
     body: JSON.stringify({ email, password })
   });
   const data = await res.json();
+  console.log('SignIn response:', JSON.stringify(data, null, 2));
   if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed.');
   localStorage.setItem('sb_access_token',  data.access_token);
   localStorage.setItem('sb_refresh_token', data.refresh_token);
+  console.log('Stored access token:', data.access_token?.substring(0, 50) + '...');
   sbSession = data;
   return data;
 }
