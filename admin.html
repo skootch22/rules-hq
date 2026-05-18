@@ -966,6 +966,8 @@ async function sbFetch(path, options = {}) {
   });
 
   let res = await doFetch();
+  console.log('sbFetch response status:', res.status, res.statusText);
+  console.log('sbFetch response headers:', Object.fromEntries(res.headers.entries()));
 
   // If 401, try refreshing the token once and retry
   if (res.status === 401) {
