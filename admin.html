@@ -856,11 +856,9 @@ async function signIn(email, password) {
     body: JSON.stringify({ email, password })
   });
   const data = await res.json();
-  console.log('SignIn response:', JSON.stringify(data, null, 2));
   if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed.');
   localStorage.setItem('sb_access_token',  data.access_token);
   localStorage.setItem('sb_refresh_token', data.refresh_token);
-  console.log('Stored access token:', data.access_token?.substring(0, 50) + '...');
   sbSession = data;
   return data;
 }
@@ -966,8 +964,6 @@ async function sbFetch(path, options = {}) {
   });
 
   let res = await doFetch();
-  console.log('sbFetch response status:', res.status, res.statusText);
-  console.log('sbFetch response headers:', Object.fromEntries(res.headers.entries()));
 
   // If 401, try refreshing the token once and retry
   if (res.status === 401) {
@@ -1152,15 +1148,11 @@ document.getElementById('btn-save').addEventListener('click', async () => {
   try {
     if (editingId) {
       const { team_id, ...patchRec } = rec;
-      console.log('PATCH id:', editingId);
-      console.log('PATCH body:', JSON.stringify(patchRec, null, 2));
-      console.log('PATCH headers:', getAuthHeaders());
-      const result = await sbFetch(`tournaments?id=eq.${editingId}`, {
+      await sbFetch(`tournaments?id=eq.${editingId}`, {
         method: 'PATCH',
         headers: { 'Prefer': 'return=minimal' },
         body: JSON.stringify(patchRec)
       });
-      console.log('PATCH result:', result);
       showToast('Tournament updated.', 'success');
     } else {
       await sbFetch('tournaments', {
