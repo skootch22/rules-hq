@@ -932,15 +932,52 @@ async function handleLogin() {
 document.getElementById('btn-logout').addEventListener('click', signOut);
 
 // ── SUPABASE HELPERS ──────────────────────────────────────────
+async function refreshToken() {
+  const refresh_token = localStorage.getItem('sb_refresh_token');
+  if (!refresh_token) return false;
+  try {
+    const res = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: {
+        'apikey':       CONFIG.SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ refresh_token })
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    localStorage.setItem('sb_access_token',  data.access_token);
+    localStorage.setItem('sb_refresh_token', data.refresh_token);
+    sbSession = data;
+    return true;
+  } catch { return false; }
+}
+
 async function sbFetch(path, options = {}) {
   const { headers: optHeaders, ...restOptions } = options;
-  const res = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${path}`, {
+
+  const doFetch = () => fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${path}`, {
     ...restOptions,
     headers: {
       ...getAuthHeaders(),
       ...(optHeaders || {}),
     },
   });
+
+  let res = await doFetch();
+
+  // If 401, try refreshing the token once and retry
+  if (res.status === 401) {
+    const refreshed = await refreshToken();
+    if (refreshed) {
+      res = await doFetch();
+    } else {
+      // Refresh failed — session is dead, send back to login
+      showLogin();
+      throw new Error('Session expired. Please log in again.');
+    }
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || `HTTP ${res.status}`);
