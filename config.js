@@ -24,7 +24,7 @@ const CONFIG = {
 
   // ── PAGE ──────────────────────────────────────────────────────
   // Text shown in the browser tab and when bookmarked.
-  PAGE_TITLE: "RulesHQ",
+  PAGE_TITLE: "TourneyNotes",
 
   // ── FAVICON ───────────────────────────────────────────────────
   // Browser tab icon. Can be a relative path or full URL.
@@ -46,8 +46,8 @@ const CONFIG = {
   // BRAND_LOGO_SRC defaults to LOGO_SRC if left empty.
   // BRAND_LOGO_TEXT shows a text label below the logo (e.g. "Powered by RulesHQ").
   // Set both to "" to hide the footer brand entirely.
-  BRAND_LOGO_SRC:  "Logos/RulesHQ_BLUE.png",   // e.g. "RulesHQ_logo_transparent.png" or leave "" to use LOGO_SRC
-  BRAND_LOGO_TEXT: "Powered by RulesHQ",
+  BRAND_LOGO_SRC:  "Logos/TourneyNotes_BLUE.png",   // e.g. "RulesHQ_logo_transparent.png" or leave "" to use LOGO_SRC
+  BRAND_LOGO_TEXT: "Powered by TourneyNotes",
 
   // ── THEME ─────────────────────────────────────────────────────
   // Built-in themes: "original-blue", "red-black", "light-blue", "orange", "black-yellow", "black-white"
