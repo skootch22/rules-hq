@@ -356,6 +356,42 @@
       border-right: 1px solid var(--border);
     }
     .stat-cell:last-child { border-right: none; }
+    .stat-cell.stat-cell-tappable {
+      cursor: pointer;
+      transition: background .2s;
+      position: relative;
+    }
+    .stat-cell.stat-cell-tappable:hover { background: rgba(255,255,255,.04); }
+    .stat-cell.stat-cell-tappable .s-tap-hint {
+      font-size: .58rem;
+      color: var(--green);
+      margin-top: .2rem;
+      letter-spacing: .04em;
+    }
+
+    /* teams dropdown */
+    .teams-dropdown {
+      display: none;
+      background: var(--navy2);
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: .6rem .85rem;
+    }
+    .teams-dropdown.open { display: block; }
+    .teams-dropdown ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+    }
+    .teams-dropdown ul li {
+      font-size: .82rem;
+      color: var(--light);
+      padding: .3rem .5rem;
+      border-radius: 5px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+    }
     .stat-cell .s-label {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: .68rem;
@@ -556,6 +592,15 @@
       <span class="s-label">Balks</span>
       <div class="s-value" id="r-balks" style="font-size:1.1rem; padding-top:.15rem;">—</div>
     </div>
+    <div class="stat-cell stat-cell-tappable" id="r-teams-cell" style="display:none; grid-column: 1 / -1; border-top: 1px solid var(--border); border-right: none;" onclick="toggleTeamsDropdown()">
+      <span class="s-label">Teams</span>
+      <div class="s-value" id="r-teams-count">—</div>
+      <div class="s-tap-hint" id="r-teams-tap-hint">tap to view ▾</div>
+    </div>
+  </div>
+
+  <div class="teams-dropdown" id="r-teams-dropdown">
+    <ul id="r-teams-list"></ul>
   </div>
 
   <div class="rules-body">
@@ -809,10 +854,14 @@ async function loadSheet() {
       }
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const [data, hotelsData] = await Promise.all([
+    const [data, hotelsData, teamsData] = await Promise.all([
       res.json(),
       fetch(
         `${CONFIG.SUPABASE_URL}/rest/v1/hotels?order=sort_order.asc`,
+        { headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` } }
+      ).then(r => r.json()).catch(() => []),
+      fetch(
+        `${CONFIG.SUPABASE_URL}/rest/v1/tournament_teams?order=name.asc`,
         { headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` } }
       ).then(r => r.json()).catch(() => [])
     ]);
@@ -844,6 +893,7 @@ async function loadSheet() {
       numTeams:        r.num_teams             ? String(r.num_teams) : '',
       tournamentUrl:   r.tournament_url        || '',
       hotels:          Array.isArray(hotelsData) ? hotelsData.filter(h => h.tournament_id === r.id) : [],
+      teams:           Array.isArray(teamsData)  ? teamsData.filter(t => t.tournament_id === r.id) : [],
     })).filter(t => t.name);
 
     populateDropdown();
@@ -865,6 +915,13 @@ csBtn.addEventListener('click', (e) => {
   csDropdown.classList.toggle('open');
 });
 document.addEventListener('click', () => csDropdown.classList.remove('open'));
+
+function toggleTeamsDropdown() {
+  const dropdown = document.getElementById('r-teams-dropdown');
+  const hint = document.getElementById('r-teams-tap-hint');
+  const isOpen = dropdown.classList.toggle('open');
+  hint.textContent = isOpen ? 'tap to close ▴' : 'tap to view ▾';
+}
 
 function populateDropdown() {
   csDropdown.innerHTML = '';
@@ -943,12 +1000,27 @@ function showRules(t) {
   const infoRow = document.getElementById('r-info-row');
   let infoHtml = '';
   if (t.guaranteedGames) infoHtml += `<span class="info-badge">🎮 ${escapeHTML(t.guaranteedGames)} guaranteed</span>`;
-  if (t.numTeams)        infoHtml += `<span class="info-badge">👥 ${escapeHTML(t.numTeams)} teams</span>`;
+  if (t.teams && t.teams.length) infoHtml += `<span class="info-badge">👥 ${t.teams.length} teams</span>`;
   if (infoHtml) {
     infoRow.innerHTML = infoHtml;
     infoRow.style.display = 'flex';
   } else {
     infoRow.style.display = 'none';
+  }
+
+  // Teams stat cell — tappable, shows alphabetical list
+  const teamsCell = document.getElementById('r-teams-cell');
+  const teamsDropdown = document.getElementById('r-teams-dropdown');
+  const teamsList = document.getElementById('r-teams-list');
+  if (t.teams && t.teams.length) {
+    document.getElementById('r-teams-count').textContent = t.teams.length;
+    teamsList.innerHTML = t.teams.map(tm => `<li>${escapeHTML(tm.name)}</li>`).join('');
+    teamsCell.style.display = 'block';
+    teamsDropdown.classList.remove('open');
+    document.getElementById('r-teams-tap-hint').textContent = 'tap to view ▾';
+  } else {
+    teamsCell.style.display = 'none';
+    teamsDropdown.classList.remove('open');
   }
 
   // Hotel banners — one per hotel, supports multiple
