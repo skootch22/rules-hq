@@ -955,26 +955,26 @@ function showRules(t) {
   const hotelsWrap = document.getElementById('r-hotel-banners-wrap');
   const hotelsContainer = document.getElementById('r-hotel-banners');
   if (t.hotels && t.hotels.length > 0) {
-    const label = t.hotels.length > 1 ? '🏨 Team Hotels' : '🏨 Team Hotel';
-    hotelsContainer.innerHTML = t.hotels.map((h, i) => {
-      const mapsUrl = h.address ? 'https://maps.google.com/?q=' + encodeURIComponent(h.address) : '';
-      const nameHtml = h.url
-        ? `<a href="${h.url}" target="_blank" rel="noopener" class="hb-name" style="color:inherit;text-decoration:none;">${h.name}</a>`
-        : `<span class="hb-name">${h.name}</span>`;
-      const addrHtml = mapsUrl
-        ? `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:1rem; text-decoration:none; line-height:1;" title="Get Directions">📍</a>`
-        : '';
-      return `
-        <div class="hotel-banner">
-          <div class="hb-left">
-            ${t.hotels.length > 1 ? `<div class="hb-eyebrow" style="margin-bottom:.1rem; font-size:.6rem;">Hotel ${i + 1}</div>` : ''}
-            <div style="display:flex; align-items:center; gap:.4rem;">
-              ${nameHtml}
-              ${addrHtml}
+    hotelsContainer.innerHTML = `
+      <div class="hb-section-label">🏨 Team Hotel${t.hotels.length > 1 ? 's' : ''}</div>
+      ${t.hotels.map(h => {
+        const mapsUrl = h.address ? 'https://maps.google.com/?q=' + encodeURIComponent(h.address) : '';
+        const nameHtml = h.url
+          ? `<a href="${h.url}" target="_blank" rel="noopener" class="hb-name" style="color:inherit;text-decoration:none;">${h.name}</a>`
+          : `<span class="hb-name">${h.name}</span>`;
+        const addrHtml = mapsUrl
+          ? `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:1rem; text-decoration:none; line-height:1;" title="Get Directions">📍</a>`
+          : '';
+        return `
+          <div class="hotel-banner">
+            <div class="hb-left">
+              <div style="display:flex; align-items:center; gap:.4rem;">
+                ${nameHtml}
+                ${addrHtml}
+              </div>
             </div>
-          </div>
-        </div>`;
-    }).join('');
+          </div>`;
+      }).join('')}`;
     hotelsWrap.style.display = 'block';
   } else {
     hotelsWrap.style.display = 'none';
