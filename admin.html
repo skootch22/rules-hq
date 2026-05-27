@@ -671,21 +671,14 @@
         </div>
 
         <hr class="form-section-divider" />
-        <div class="form-section-label">Hotel (optional)</div>
-
-        <div class="form-group">
-          <label>Hotel Name</label>
-          <input type="text" id="f-hotel-name" placeholder="e.g. Hilton Garden Inn" />
+        <div class="form-section-label" style="grid-column:1/-1; display:flex; align-items:center; justify-content:space-between;">
+          Hotels (optional)
+          <button type="button" class="btn-secondary" id="btn-add-hotel" style="font-size:.75rem; padding:.35rem .75rem;">+ Add Hotel</button>
         </div>
 
-        <div class="form-group">
-          <label>Hotel Address <span class="hint">for maps link</span></label>
-          <input type="text" id="f-hotel-address" placeholder="e.g. 3928 Jackpot Road, Grove City, OH" />
-        </div>
-
-        <div class="form-group full">
-          <label>Hotel URL</label>
-          <input type="url" id="f-hotel-url" placeholder="https://..." />
+        <div class="full" id="hotels-manager">
+          <div id="hotels-list" style="display:flex; flex-direction:column; gap:.75rem;"></div>
+          <div id="hotels-empty" style="font-size:.82rem; color:var(--muted); padding:.5rem 0; display:none;">No hotels added yet. Click + Add Hotel to add one.</div>
         </div>
 
         <hr class="form-section-divider" />
@@ -1037,6 +1030,80 @@ function formatDateRange(start, end) {
   return fmt(start || end);
 }
 
+// ── HOTELS ────────────────────────────────────────────────────
+let hotelRows = []; // { id (existing uuid or null), name, address, url, sort_order, _delete }
+
+function renderHotelRows() {
+  const list = getEl('hotels-list');
+  const empty = getEl('hotels-empty');
+  const active = hotelRows.filter(h => !h._delete);
+  if (!active.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = active.map((h, i) => `
+    <div class="hotel-row" data-idx="${hotelRows.indexOf(h)}" style="background:var(--navy); border:1px solid var(--border); border-radius:8px; padding:.85rem; display:flex; flex-direction:column; gap:.6rem;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.1rem;">
+        <span style="font-family:'Barlow Condensed',sans-serif; font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);">Hotel ${i + 1}</span>
+        <button type="button" class="btn-danger" style="font-size:.72rem; padding:.25rem .6rem;" onclick="removeHotel(${hotelRows.indexOf(h)})">Remove</button>
+      </div>
+      <input type="text" placeholder="Hotel Name" value="${escapeHTML(h.name || '')}"
+        oninput="hotelRows[${hotelRows.indexOf(h)}].name = this.value"
+        style="background:var(--card-bg); color:var(--light); border:1px solid var(--border); border-radius:7px; padding:.55rem .85rem; font-family:'Barlow',sans-serif; font-size:.9rem; width:100%;" />
+      <input type="text" placeholder="Address (for maps link)" value="${escapeHTML(h.address || '')}"
+        oninput="hotelRows[${hotelRows.indexOf(h)}].address = this.value"
+        style="background:var(--card-bg); color:var(--light); border:1px solid var(--border); border-radius:7px; padding:.55rem .85rem; font-family:'Barlow',sans-serif; font-size:.9rem; width:100%;" />
+      <input type="url" placeholder="Booking URL (optional)" value="${escapeHTML(h.url || '')}"
+        oninput="hotelRows[${hotelRows.indexOf(h)}].url = this.value"
+        style="background:var(--card-bg); color:var(--light); border:1px solid var(--border); border-radius:7px; padding:.55rem .85rem; font-family:'Barlow',sans-serif; font-size:.9rem; width:100%;" />
+    </div>
+  `).join('');
+}
+
+function addHotelRow() {
+  hotelRows.push({ id: null, name: '', address: '', url: '', sort_order: hotelRows.length + 1, _delete: false });
+  renderHotelRows();
+}
+
+function removeHotel(idx) {
+  if (hotelRows[idx].id) {
+    hotelRows[idx]._delete = true; // mark for deletion if existing
+  } else {
+    hotelRows.splice(idx, 1); // just remove if new
+  }
+  renderHotelRows();
+}
+
+async function loadHotelsForTournament(tournamentId) {
+  try {
+    const data = await sbFetch(`hotels?tournament_id=eq.${tournamentId}&order=sort_order.asc`);
+    hotelRows = (data || []).map(h => ({ id: h.id, name: h.name || '', address: h.address || '', url: h.url || '', sort_order: h.sort_order, _delete: false }));
+  } catch { hotelRows = []; }
+  renderHotelRows();
+}
+
+async function saveHotels(tournamentId) {
+  const promises = [];
+  hotelRows.forEach((h, i) => {
+    if (h._delete && h.id) {
+      promises.push(sbFetch(`hotels?id=eq.${h.id}`, { method: 'DELETE' }));
+    } else if (!h._delete && h.name.trim()) {
+      const payload = { tournament_id: tournamentId, name: h.name.trim(), address: h.address.trim() || null, url: h.url.trim() || null, sort_order: i + 1 };
+      if (h.id) {
+        const { tournament_id, ...patch } = payload;
+        promises.push(sbFetch(`hotels?id=eq.${h.id}`, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify(patch) }));
+      } else {
+        promises.push(sbFetch('hotels', { method: 'POST', headers: { 'Prefer': 'return=representation' }, body: JSON.stringify(payload) }));
+      }
+    }
+  });
+  await Promise.all(promises);
+}
+
+getEl('btn-add-hotel').addEventListener('click', addHotelRow);
+
 // ── FORM ──────────────────────────────────────────────────────
 const FIELDS = [
   ['f-tournament',       'tournament',        'text'],
@@ -1062,9 +1129,6 @@ const FIELDS = [
   ['f-tie-breakers',     'tie_breakers',      'text'],
   ['f-substitution-rules','substitution_rules','text'],
   ['f-stealing-rules',   'stealing_rules',    'text'],
-  ['f-hotel-name',       'hotel_name',        'text'],
-  ['f-hotel-address',    'hotel_address',     'text'],
-  ['f-hotel-url',        'hotel_url',         'text'],
   ['f-notes',            'notes',             'text'],
 ];
 
@@ -1104,18 +1168,21 @@ function recordFromForm() {
 function openAdd() {
   editingId = null;
   clearForm();
+  hotelRows = [];
+  renderHotelRows();
   getEl('form-title').textContent = 'Add Tournament';
   getEl('btn-save').textContent = 'Save Tournament';
   showForm();
 }
 
-function openEdit(id) {
+async function openEdit(id) {
   const t = allTournaments.find(x => x.id === id);
   if (!t) return;
   editingId = id;
   formFromRecord(t);
   getEl('form-title').textContent = 'Edit Tournament';
   getEl('btn-save').textContent = 'Save Changes';
+  await loadHotelsForTournament(id);
   showForm();
 }
 
@@ -1146,6 +1213,7 @@ document.getElementById('btn-save').addEventListener('click', async () => {
   btn.textContent = 'Saving…';
 
   try {
+    let tournamentId = editingId;
     if (editingId) {
       const { team_id, ...patchRec } = rec;
       await sbFetch(`tournaments?id=eq.${editingId}`, {
@@ -1153,15 +1221,16 @@ document.getElementById('btn-save').addEventListener('click', async () => {
         headers: { 'Prefer': 'return=minimal' },
         body: JSON.stringify(patchRec)
       });
-      showToast('Tournament updated.', 'success');
     } else {
-      await sbFetch('tournaments', {
+      const result = await sbFetch('tournaments', {
         method: 'POST',
         headers: { 'Prefer': 'return=representation' },
         body: JSON.stringify(rec)
       });
-      showToast('Tournament added.', 'success');
+      tournamentId = result[0].id;
     }
+    await saveHotels(tournamentId);
+    showToast(editingId ? 'Tournament updated.' : 'Tournament added.', 'success');
     hideForm();
     await loadTournaments();
   } catch (err) {
