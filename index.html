@@ -917,11 +917,13 @@ csBtn.addEventListener('click', (e) => {
 });
 document.addEventListener('click', () => csDropdown.classList.remove('open'));
 
-document.getElementById('r-teams-cell').addEventListener('click', function() {
-  const dropdown = document.getElementById('r-teams-dropdown');
-  const hint = document.getElementById('r-teams-tap-hint');
-  const isOpen = dropdown.classList.toggle('open');
-  hint.textContent = isOpen ? 'tap to close ▴' : 'tap to view ▾';
+document.getElementById('rules-panel').addEventListener('click', function(e) {
+  if (e.target.closest('#r-teams-cell')) {
+    const dropdown = document.getElementById('r-teams-dropdown');
+    const hint = document.getElementById('r-teams-tap-hint');
+    const isOpen = dropdown.classList.toggle('open');
+    hint.textContent = isOpen ? 'tap to close ▴' : 'tap to view ▾';
+  }
 });
 
 function populateDropdown() {
