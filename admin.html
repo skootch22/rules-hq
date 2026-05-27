@@ -572,11 +572,6 @@
         </div>
 
         <div class="form-group">
-          <label>Number of Teams</label>
-          <input type="number" id="f-num-teams" placeholder="e.g. 16" min="1" />
-        </div>
-
-        <div class="form-group">
           <label>Guaranteed Games</label>
           <input type="number" id="f-guaranteed-games" placeholder="e.g. 3" min="1" />
         </div>
@@ -584,6 +579,15 @@
         <div class="form-group">
           <label>Gate Fee</label>
           <input type="text" id="f-gate-fee" placeholder="e.g. $5/person" />
+        </div>
+
+        <div class="form-group full">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.5rem;">
+            <label style="margin:0;">Teams in Tournament <span class="hint">optional — enables tap-to-view team list</span></label>
+            <button type="button" class="btn-secondary" id="btn-add-team" style="font-size:.75rem; padding:.35rem .75rem;">+ Add Team</button>
+          </div>
+          <div id="teams-list" style="display:flex; flex-direction:column; gap:.5rem;"></div>
+          <div id="teams-empty" style="font-size:.82rem; color:var(--muted); padding:.35rem 0; display:none;">No teams added. Count card will be hidden in the app.</div>
         </div>
 
         <div class="form-group full checkbox-row">
@@ -1104,6 +1108,74 @@ async function saveHotels(tournamentId) {
 
 getEl('btn-add-hotel').addEventListener('click', addHotelRow);
 
+// ── TOURNAMENT TEAMS ──────────────────────────────────────────
+let teamRows = []; // { id (existing uuid or null), name, sort_order, _delete }
+
+function renderTeamRows() {
+  const list = getEl('teams-list');
+  const empty = getEl('teams-empty');
+  const active = teamRows.filter(r => !r._delete);
+  if (!active.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = active.map((r) => {
+    const idx = teamRows.indexOf(r);
+    return `
+      <div style="display:flex; gap:.5rem; align-items:center;">
+        <input type="text" placeholder="Team name e.g. Cardinals 12U"
+          value="${escapeHTML(r.name || '')}"
+          oninput="teamRows[${idx}].name = this.value"
+          style="flex:1; background:var(--navy); color:var(--light); border:1px solid var(--border); border-radius:7px; padding:.55rem .85rem; font-family:'Barlow',sans-serif; font-size:.9rem;" />
+        <button type="button" class="btn-danger" style="font-size:.72rem; padding:.25rem .6rem; white-space:nowrap;" onclick="removeTeamRow(${idx})">Remove</button>
+      </div>`;
+  }).join('');
+}
+
+function addTeamRow() {
+  teamRows.push({ id: null, name: '', sort_order: teamRows.length + 1, _delete: false });
+  renderTeamRows();
+}
+
+function removeTeamRow(idx) {
+  if (teamRows[idx].id) {
+    teamRows[idx]._delete = true;
+  } else {
+    teamRows.splice(idx, 1);
+  }
+  renderTeamRows();
+}
+
+async function loadTeamsForTournament(tournamentId) {
+  try {
+    const data = await sbFetch(`tournament_teams?tournament_id=eq.${tournamentId}&order=sort_order.asc`);
+    teamRows = (data || []).map(r => ({ id: r.id, name: r.name || '', sort_order: r.sort_order, _delete: false }));
+  } catch { teamRows = []; }
+  renderTeamRows();
+}
+
+async function saveTeams(tournamentId) {
+  const promises = [];
+  teamRows.forEach((r, i) => {
+    if (r._delete && r.id) {
+      promises.push(sbFetch(`tournament_teams?id=eq.${r.id}`, { method: 'DELETE' }));
+    } else if (!r._delete && r.name.trim()) {
+      const payload = { tournament_id: tournamentId, name: r.name.trim(), sort_order: i + 1 };
+      if (r.id) {
+        const { tournament_id, ...patch } = payload;
+        promises.push(sbFetch(`tournament_teams?id=eq.${r.id}`, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify(patch) }));
+      } else {
+        promises.push(sbFetch('tournament_teams', { method: 'POST', headers: { 'Prefer': 'return=representation' }, body: JSON.stringify(payload) }));
+      }
+    }
+  });
+  await Promise.all(promises);
+}
+
+getEl('btn-add-team').addEventListener('click', addTeamRow);
+
 // ── FORM ──────────────────────────────────────────────────────
 const FIELDS = [
   ['f-tournament',       'tournament',        'text'],
@@ -1113,7 +1185,6 @@ const FIELDS = [
   ['f-end-date',         'end_date',          'text'],
   ['f-tournament-url',   'tournament_url',    'text'],
   ['f-rules-url',        'rules_url',         'text'],
-  ['f-num-teams',        'num_teams',         'int'],
   ['f-guaranteed-games', 'guaranteed_games',  'int'],
   ['f-gate-fee',         'gate_fee',          'text'],
   ['f-active',           'active',            'bool'],
@@ -1170,6 +1241,8 @@ function openAdd() {
   clearForm();
   hotelRows = [];
   renderHotelRows();
+  teamRows = [];
+  renderTeamRows();
   getEl('form-title').textContent = 'Add Tournament';
   getEl('btn-save').textContent = 'Save Tournament';
   showForm();
@@ -1182,7 +1255,10 @@ async function openEdit(id) {
   formFromRecord(t);
   getEl('form-title').textContent = 'Edit Tournament';
   getEl('btn-save').textContent = 'Save Changes';
-  await loadHotelsForTournament(id);
+  await Promise.all([
+    loadHotelsForTournament(id),
+    loadTeamsForTournament(id)
+  ]);
   showForm();
 }
 
@@ -1229,7 +1305,10 @@ document.getElementById('btn-save').addEventListener('click', async () => {
       });
       tournamentId = result[0].id;
     }
-    await saveHotels(tournamentId);
+    await Promise.all([
+      saveHotels(tournamentId),
+      saveTeams(tournamentId)
+    ]);
     showToast(editingId ? 'Tournament updated.' : 'Tournament added.', 'success');
     hideForm();
     await loadTournaments();
