@@ -592,11 +592,12 @@
       <span class="s-label">Balks</span>
       <div class="s-value" id="r-balks" style="font-size:1.1rem; padding-top:.15rem;">—</div>
     </div>
-    <div class="stat-cell stat-cell-tappable" id="r-teams-cell" style="display:none; grid-column: 1 / -1; border-top: 1px solid var(--border); border-right: none;" onclick="toggleTeamsDropdown()">
-      <span class="s-label">Teams</span>
-      <div class="s-value" id="r-teams-count">—</div>
-      <div class="s-tap-hint" id="r-teams-tap-hint">tap to view ▾</div>
-    </div>
+  </div>
+
+  <div class="stat-cell stat-cell-tappable" id="r-teams-cell" style="display:none; border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border); text-align:center;" onclick="toggleTeamsDropdown()">
+    <span class="s-label">Teams in Tournament</span>
+    <div class="s-value" id="r-teams-count">—</div>
+    <div class="s-tap-hint" id="r-teams-tap-hint">tap to view ▾</div>
   </div>
 
   <div class="teams-dropdown" id="r-teams-dropdown">
