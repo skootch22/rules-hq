@@ -594,7 +594,7 @@
     </div>
   </div>
 
-  <div class="stat-cell stat-cell-tappable" id="r-teams-cell" style="display:none; border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border); text-align:center;" onclick="toggleTeamsDropdown()">
+  <div class="stat-cell stat-cell-tappable" id="r-teams-cell" style="display:none; border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border); text-align:center;">
     <span class="s-label">Teams in Tournament</span>
     <div class="s-value" id="r-teams-count">—</div>
     <div class="s-tap-hint" id="r-teams-tap-hint">tap to view ▾</div>
@@ -917,12 +917,12 @@ csBtn.addEventListener('click', (e) => {
 });
 document.addEventListener('click', () => csDropdown.classList.remove('open'));
 
-function toggleTeamsDropdown() {
+document.getElementById('r-teams-cell').addEventListener('click', function() {
   const dropdown = document.getElementById('r-teams-dropdown');
   const hint = document.getElementById('r-teams-tap-hint');
   const isOpen = dropdown.classList.toggle('open');
   hint.textContent = isOpen ? 'tap to close ▴' : 'tap to view ▾';
-}
+});
 
 function populateDropdown() {
   csDropdown.innerHTML = '';
