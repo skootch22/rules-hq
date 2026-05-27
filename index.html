@@ -356,7 +356,11 @@
       border-right: 1px solid var(--border);
     }
     .stat-cell:last-child { border-right: none; }
-    .stat-cell.stat-cell-tappable {
+    .info-badge-tappable {
+      border-color: rgba(255,255,255,.3) !important;
+      transition: background .2s;
+    }
+    .info-badge-tappable:hover { background: rgba(255,255,255,.2); }
       cursor: pointer;
       transition: background .2s;
       position: relative;
@@ -578,6 +582,10 @@
     <div id="r-hotel-banners"></div>
   </div>
 
+  <div class="teams-dropdown" id="r-teams-dropdown">
+    <ul id="r-teams-list"></ul>
+  </div>
+
   <div class="quick-stats" id="r-quick-stats">
     <div class="stat-cell">
       <span class="s-label">Innings</span>
@@ -592,16 +600,6 @@
       <span class="s-label">Balks</span>
       <div class="s-value" id="r-balks" style="font-size:1.1rem; padding-top:.15rem;">—</div>
     </div>
-  </div>
-
-  <div class="stat-cell stat-cell-tappable" id="r-teams-cell" style="display:none; border-top: 1px solid var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border); text-align:center;">
-    <span class="s-label">Teams in Tournament</span>
-    <div class="s-value" id="r-teams-count">—</div>
-    <div class="s-tap-hint" id="r-teams-tap-hint">tap to view ▾</div>
-  </div>
-
-  <div class="teams-dropdown" id="r-teams-dropdown">
-    <ul id="r-teams-list"></ul>
   </div>
 
   <div class="rules-body">
@@ -918,11 +916,14 @@ csBtn.addEventListener('click', (e) => {
 document.addEventListener('click', () => csDropdown.classList.remove('open'));
 
 document.getElementById('rules-panel').addEventListener('click', function(e) {
-  if (e.target.closest('#r-teams-cell')) {
+  if (e.target.closest('#r-teams-badge')) {
     const dropdown = document.getElementById('r-teams-dropdown');
-    const hint = document.getElementById('r-teams-tap-hint');
+    const badge = document.getElementById('r-teams-badge');
     const isOpen = dropdown.classList.toggle('open');
-    hint.textContent = isOpen ? 'tap to close ▴' : 'tap to view ▾';
+    if (badge) {
+      const count = badge.textContent.match(/\d+/)?.[0] || '';
+      badge.textContent = isOpen ? `👥 ${count} teams ▴` : `👥 ${count} teams ▾`;
+    }
   }
 });
 
@@ -1003,7 +1004,7 @@ function showRules(t) {
   const infoRow = document.getElementById('r-info-row');
   let infoHtml = '';
   if (t.guaranteedGames) infoHtml += `<span class="info-badge">🎮 ${escapeHTML(t.guaranteedGames)} guaranteed</span>`;
-  if (t.teams && t.teams.length) infoHtml += `<span class="info-badge">👥 ${t.teams.length} teams</span>`;
+  if (t.teams && t.teams.length) infoHtml += `<span class="info-badge info-badge-tappable" id="r-teams-badge" style="cursor:pointer;">👥 ${t.teams.length} teams ▾</span>`;
   if (infoHtml) {
     infoRow.innerHTML = infoHtml;
     infoRow.style.display = 'flex';
@@ -1011,19 +1012,15 @@ function showRules(t) {
     infoRow.style.display = 'none';
   }
 
-  // Teams stat cell — tappable, shows alphabetical list
-  const teamsCell = document.getElementById('r-teams-cell');
+  // Teams dropdown — driven from tappable badge in info row
   const teamsDropdown = document.getElementById('r-teams-dropdown');
   const teamsList = document.getElementById('r-teams-list');
   if (t.teams && t.teams.length) {
-    document.getElementById('r-teams-count').textContent = t.teams.length;
     teamsList.innerHTML = t.teams.map(tm => `<li>${escapeHTML(tm.name)}</li>`).join('');
-    teamsCell.style.display = 'block';
     teamsDropdown.classList.remove('open');
-    document.getElementById('r-teams-tap-hint').textContent = 'tap to view ▾';
   } else {
-    teamsCell.style.display = 'none';
     teamsDropdown.classList.remove('open');
+    teamsList.innerHTML = '';
   }
 
   // Hotel banners — one per hotel, supports multiple
