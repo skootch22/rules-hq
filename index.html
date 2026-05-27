@@ -310,6 +310,20 @@
       justify-content: space-between;
       gap: .75rem;
     }
+    .hotel-banner:first-child { border-top: none; }
+    .hotel-banner + .hotel-banner { border-top: 1px solid var(--border); }
+    .hotel-banners-wrap { display: none; }
+    .hotel-banners-wrap .hb-section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .68rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--green);
+      padding: .5rem 1rem .1rem;
+      background: rgba(56,189,248,.08);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
     .hotel-banner .hb-left { flex: 1; min-width: 0; }
     .hotel-banner .hb-eyebrow {
       font-family: 'Barlow Condensed', sans-serif;
@@ -524,14 +538,8 @@
     </div>
   </div>
 
-  <div id="r-hotel-banner" class="hotel-banner" style="display:none;">
-    <div class="hb-left">
-      <div class="hb-eyebrow">🏨 Team Hotel</div>
-      <div style="display:flex; align-items:center; gap:.4rem;">
-        <span class="hb-name" id="r-hotel-name"></span>
-        <a id="r-hotel-addr" style="font-size:1rem; display:none; text-decoration:none; line-height:1;" target="_blank" rel="noopener" title="Get Directions">📍</a>
-      </div>
-    </div>
+  <div class="hotel-banners-wrap" id="r-hotel-banners-wrap">
+    <div id="r-hotel-banners"></div>
   </div>
 
   <div class="quick-stats" id="r-quick-stats">
@@ -801,7 +809,13 @@ async function loadSheet() {
       }
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const [data, hotelsData] = await Promise.all([
+      res.json(),
+      fetch(
+        `${CONFIG.SUPABASE_URL}/rest/v1/hotels?order=sort_order.asc`,
+        { headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` } }
+      ).then(r => r.json()).catch(() => [])
+    ]);
 
     if (!Array.isArray(data)) throw new Error('Unexpected response from database.');
 
@@ -824,14 +838,12 @@ async function loadSheet() {
       stealing:        r.stealing_rules        || '',
       fieldType:       (r.field_type           || '').toLowerCase(),
       substitution:    r.substitution_rules    || '',
-      hotelName:       r.hotel_name            || '',
-      hotelAddress:    r.hotel_address         || '',
-      hotelUrl:        r.hotel_url             || '',
       fieldAddress:    r.field_address         || '',
       guaranteedGames: r.guaranteed_games      ? String(r.guaranteed_games) : '',
       gateFee:         r.gate_fee              || '',
       numTeams:        r.num_teams             ? String(r.num_teams) : '',
       tournamentUrl:   r.tournament_url        || '',
+      hotels:          Array.isArray(hotelsData) ? hotelsData.filter(h => h.tournament_id === r.id) : [],
     })).filter(t => t.name);
 
     populateDropdown();
@@ -939,20 +951,34 @@ function showRules(t) {
     infoRow.style.display = 'none';
   }
 
-  // Hotel banner — pin icon links to maps, no address text shown
-  const hotelBanner = document.getElementById('r-hotel-banner');
-  if (t.hotelName) {
-    document.getElementById('r-hotel-name').textContent = t.hotelName;
-    const addrEl = document.getElementById('r-hotel-addr');
-    if (t.hotelAddress) {
-      addrEl.href = 'https://maps.google.com/?q=' + encodeURIComponent(t.hotelAddress);
-      addrEl.style.display = 'inline';
-    } else {
-      addrEl.style.display = 'none';
-    }
-    hotelBanner.style.display = 'flex';
+  // Hotel banners — one per hotel, supports multiple
+  const hotelsWrap = document.getElementById('r-hotel-banners-wrap');
+  const hotelsContainer = document.getElementById('r-hotel-banners');
+  if (t.hotels && t.hotels.length > 0) {
+    const label = t.hotels.length > 1 ? '🏨 Team Hotels' : '🏨 Team Hotel';
+    hotelsContainer.innerHTML = t.hotels.map((h, i) => {
+      const mapsUrl = h.address ? 'https://maps.google.com/?q=' + encodeURIComponent(h.address) : '';
+      const nameHtml = h.url
+        ? `<a href="${h.url}" target="_blank" rel="noopener" class="hb-name" style="color:inherit;text-decoration:none;">${h.name}</a>`
+        : `<span class="hb-name">${h.name}</span>`;
+      const addrHtml = mapsUrl
+        ? `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:1rem; text-decoration:none; line-height:1;" title="Get Directions">📍</a>`
+        : '';
+      return `
+        <div class="hotel-banner">
+          <div class="hb-left">
+            ${t.hotels.length > 1 ? `<div class="hb-eyebrow" style="margin-bottom:.1rem; font-size:.6rem;">Hotel ${i + 1}</div>` : ''}
+            <div style="display:flex; align-items:center; gap:.4rem;">
+              ${nameHtml}
+              ${addrHtml}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+    hotelsWrap.style.display = 'block';
   } else {
-    hotelBanner.style.display = 'none';
+    hotelsWrap.style.display = 'none';
+    hotelsContainer.innerHTML = '';
   }
 
   // Gate fee
