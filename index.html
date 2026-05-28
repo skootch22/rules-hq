@@ -356,45 +356,52 @@
       border-right: 1px solid var(--border);
     }
     .stat-cell:last-child { border-right: none; }
+
     .info-badge-tappable {
       border-color: rgba(255,255,255,.3) !important;
       transition: background .2s;
+      cursor: pointer;
     }
     .info-badge-tappable:hover { background: rgba(255,255,255,.2); }
-      cursor: pointer;
-      transition: background .2s;
-      position: relative;
-    }
-    .stat-cell.stat-cell-tappable:hover { background: rgba(255,255,255,.04); }
-    .stat-cell.stat-cell-tappable .s-tap-hint {
-      font-size: .58rem;
-      color: var(--green);
-      margin-top: .2rem;
-      letter-spacing: .04em;
-    }
 
-    /* teams dropdown */
-    .teams-dropdown {
+    /* teams inline popover */
+    .teams-popover-wrap {
+      position: relative;
+      display: inline-flex;
+    }
+    .teams-popover {
       display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      min-width: 200px;
+      max-width: 280px;
+      max-height: 220px;
+      overflow-y: auto;
       background: var(--navy2);
       border: 1px solid var(--border);
-      border-top: none;
-      padding: .6rem .85rem;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.5);
+      z-index: 50;
+      padding: .5rem;
     }
-    .teams-dropdown.open { display: block; }
-    .teams-dropdown ul {
+    .teams-popover.open { display: block; }
+    .teams-popover ul {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: .35rem;
+      gap: .3rem;
     }
-    .teams-dropdown ul li {
-      font-size: .82rem;
+    .teams-popover ul li {
+      font-size: .8rem;
       color: var(--light);
       padding: .3rem .5rem;
-      border-radius: 5px;
+      border-radius: 6px;
       background: rgba(255,255,255,.03);
       border: 1px solid var(--border);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .stat-cell .s-label {
       font-family: 'Barlow Condensed', sans-serif;
@@ -580,10 +587,6 @@
 
   <div class="hotel-banners-wrap" id="r-hotel-banners-wrap">
     <div id="r-hotel-banners"></div>
-  </div>
-
-  <div class="teams-dropdown" id="r-teams-dropdown">
-    <ul id="r-teams-list"></ul>
   </div>
 
   <div class="quick-stats" id="r-quick-stats">
@@ -917,12 +920,24 @@ document.addEventListener('click', () => csDropdown.classList.remove('open'));
 
 document.getElementById('rules-panel').addEventListener('click', function(e) {
   if (e.target.closest('#r-teams-badge')) {
-    const dropdown = document.getElementById('r-teams-dropdown');
+    const popover = document.getElementById('r-teams-popover');
     const badge = document.getElementById('r-teams-badge');
-    const isOpen = dropdown.classList.toggle('open');
-    if (badge) {
-      const count = badge.textContent.match(/\d+/)?.[0] || '';
-      badge.textContent = isOpen ? `👥 ${count} teams ▴` : `👥 ${count} teams ▾`;
+    if (!popover) return;
+    const isOpen = popover.classList.toggle('open');
+    const count = badge.textContent.match(/\d+/)?.[0] || '';
+    badge.textContent = isOpen ? `👥 ${count} teams ▴` : `👥 ${count} teams ▾`;
+  }
+});
+
+// Close teams popover when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.teams-popover-wrap')) {
+    const popover = document.getElementById('r-teams-popover');
+    const badge = document.getElementById('r-teams-badge');
+    if (popover && popover.classList.contains('open')) {
+      popover.classList.remove('open');
+      const count = badge?.textContent.match(/\d+/)?.[0] || '';
+      if (badge) badge.textContent = `👥 ${count} teams ▾`;
     }
   }
 });
@@ -1004,7 +1019,15 @@ function showRules(t) {
   const infoRow = document.getElementById('r-info-row');
   let infoHtml = '';
   if (t.guaranteedGames) infoHtml += `<span class="info-badge">🎮 ${escapeHTML(t.guaranteedGames)} guaranteed</span>`;
-  if (t.teams && t.teams.length) infoHtml += `<span class="info-badge info-badge-tappable" id="r-teams-badge" style="cursor:pointer;">👥 ${t.teams.length} teams ▾</span>`;
+  if (t.teams && t.teams.length) {
+    const teamItems = t.teams.map(tm => `<li>${escapeHTML(tm.name)}</li>`).join('');
+    infoHtml += `
+      <span class="teams-popover-wrap">
+        <span class="info-badge info-badge-tappable" id="r-teams-badge" style="cursor:pointer;">👥 ${t.teams.length} teams ▾</span>
+        <div class="teams-popover" id="r-teams-popover">
+          <ul>${teamItems}</ul>
+        </div>
+      </span>`;
   if (infoHtml) {
     infoRow.innerHTML = infoHtml;
     infoRow.style.display = 'flex';
@@ -1012,16 +1035,7 @@ function showRules(t) {
     infoRow.style.display = 'none';
   }
 
-  // Teams dropdown — driven from tappable badge in info row
-  const teamsDropdown = document.getElementById('r-teams-dropdown');
-  const teamsList = document.getElementById('r-teams-list');
-  if (t.teams && t.teams.length) {
-    teamsList.innerHTML = t.teams.map(tm => `<li>${escapeHTML(tm.name)}</li>`).join('');
-    teamsDropdown.classList.remove('open');
-  } else {
-    teamsDropdown.classList.remove('open');
-    teamsList.innerHTML = '';
-  }
+  // Teams popover built inline with badge above
 
   // Hotel banners — one per hotel, supports multiple
   const hotelsWrap = document.getElementById('r-hotel-banners-wrap');
