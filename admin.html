@@ -468,6 +468,44 @@
       font-size: .9rem;
     }
 
+    .invite-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      margin-bottom: 2rem;
+    }
+    .invite-desc {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .invite-row {
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+    }
+    .invite-row input {
+      flex: 1;
+      background: var(--navy);
+      color: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: .6rem .85rem;
+      font-family: 'Barlow', sans-serif;
+      font-size: .92rem;
+      transition: border-color .2s;
+    }
+    .invite-row input:focus { outline: none; border-color: var(--primary); }
+    .invite-status {
+      font-size: .82rem;
+      margin-top: .75rem;
+      min-height: 1.2em;
+    }
+    .invite-status.success { color: var(--green); }
+    .invite-status.error   { color: var(--red); }
+
     footer {
       text-align: center;
       margin-top: 3rem;
@@ -704,6 +742,19 @@
     <!-- Tournament list -->
     <div id="tournament-list">
       <div class="loading-row">Loading tournaments…</div>
+    </div>
+
+    <!-- Admins -->
+    <div class="section-header" style="margin-top:2rem;">
+      <span class="section-title">Team Admins</span>
+    </div>
+    <div class="invite-card">
+      <p class="invite-desc">Invite another coach or manager to administer this team's tournaments. They'll receive an email to set their password and can log in immediately after.</p>
+      <div class="invite-row">
+        <input type="email" id="invite-email" placeholder="Email address" autocomplete="off" />
+        <button class="btn-primary" id="btn-invite">Send Invite</button>
+      </div>
+      <div class="invite-status" id="invite-status"></div>
     </div>
 
   </div>
@@ -1418,6 +1469,53 @@ function escapeHTML(str) {
 function escapeAttr(str) {
   return String(str).replace(/'/g, "\\'");
 }
+
+// ── INVITE ADMIN ──────────────────────────────────────────────
+document.getElementById('btn-invite').addEventListener('click', async function() {
+  const email  = document.getElementById('invite-email').value.trim();
+  const status = document.getElementById('invite-status');
+  const btn    = document.getElementById('btn-invite');
+
+  if (!email || !email.includes('@')) {
+    status.textContent = 'Please enter a valid email address.';
+    status.className = 'invite-status error';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  status.textContent = '';
+  status.className = 'invite-status';
+
+  try {
+    const res = await fetch(
+      `${CONFIG.SUPABASE_URL}/functions/v1/invite-admin`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sbSession?.access_token || localStorage.getItem('sb_access_token') || ''}`
+        },
+        body: JSON.stringify({ email, team_id: CONFIG.TEAM_ID, admin_url: CONFIG.ADMIN_URL })
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Invite failed.');
+    status.textContent = `✓ Invite sent to ${email}. They'll receive an email to set their password.`;
+    status.className = 'invite-status success';
+    document.getElementById('invite-email').value = '';
+  } catch (err) {
+    status.textContent = '⚠ ' + err.message;
+    status.className = 'invite-status error';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send Invite';
+  }
+});
+
+document.getElementById('invite-email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btn-invite').click();
+});
 
 // ── INIT ──────────────────────────────────────────────────────
 (async () => {

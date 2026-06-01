@@ -22,6 +22,9 @@ const CONFIG = {
   // The UUID of this team's row in the teams table.
   TEAM_ID: "54896758-d4aa-488b-8bd3-423d8df59db2",
 
+  // The full URL to this team's admin panel. Used in invite emails.
+  ADMIN_URL: "https://ovxpress.tourneynotes.com/admin.html",
+
   // ── PAGE ──────────────────────────────────────────────────────
   // Text shown in the browser tab and when bookmarked.
   PAGE_TITLE: "TourneyNotes",
