@@ -558,6 +558,19 @@
   </div>
 </div>
 
+<!-- SET PASSWORD (invite flow) -->
+<div id="set-password-screen" style="display:none;">
+  <div class="login-card" style="max-width:360px; margin:calc(100vh/2 - 200px) auto 0;">
+    <div class="lock-icon">🔑</div>
+    <h2>Set Your Password</h2>
+    <p>Choose a password to complete your account setup.</p>
+    <div class="login-error" id="set-password-error"></div>
+    <input type="password" id="new-password-input" placeholder="New password" autocomplete="new-password" />
+    <input type="password" id="confirm-password-input" placeholder="Confirm password" autocomplete="new-password" style="margin-top:.75rem;" />
+    <button class="btn-primary" id="btn-set-password" style="width:100%; margin-top:1rem;">Set Password &amp; Log In</button>
+  </div>
+</div>
+
 <!-- ADMIN -->
 <div id="admin-screen">
   <div class="main-wrap">
@@ -989,12 +1002,13 @@ function getAuthHeaders() {
 }
 
 function showLogin() {
-  document.getElementById('login-screen').style.display  = 'flex';
-  document.getElementById('admin-screen').style.display  = 'none';
-  document.getElementById('btn-logout').style.display    = 'none';
-  document.getElementById('email-input').value           = '';
-  document.getElementById('password-input').value        = '';
-  document.getElementById('login-error').textContent     = '';
+  document.getElementById('login-screen').style.display       = 'flex';
+  document.getElementById('set-password-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display       = 'none';
+  document.getElementById('btn-logout').style.display         = 'none';
+  document.getElementById('email-input').value                = '';
+  document.getElementById('password-input').value             = '';
+  document.getElementById('login-error').textContent          = '';
 }
 
 function showAdmin() {
@@ -1517,8 +1531,70 @@ document.getElementById('invite-email').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('btn-invite').click();
 });
 
+// ── SET PASSWORD (invite flow) ────────────────────────────────
+function getHashParams() {
+  const hash = window.location.hash.substring(1);
+  return Object.fromEntries(new URLSearchParams(hash));
+}
+
+async function handleSetPassword() {
+  const newPw  = document.getElementById('new-password-input').value;
+  const confPw = document.getElementById('confirm-password-input').value;
+  const err    = document.getElementById('set-password-error');
+  const btn    = document.getElementById('btn-set-password');
+
+  if (!newPw) { err.textContent = 'Please enter a password.'; return; }
+  if (newPw.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
+  if (newPw !== confPw) { err.textContent = 'Passwords do not match.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Setting password…';
+  err.textContent = '';
+
+  try {
+    const res = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${sbSession?.access_token || ''}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password: newPw })
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.message || 'Failed to set password.');
+    }
+    // Clear the hash from the URL so it's clean
+    history.replaceState(null, '', window.location.pathname);
+    showAdmin();
+  } catch (e) {
+    err.textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = 'Set Password & Log In';
+  }
+}
+
+document.getElementById('btn-set-password').addEventListener('click', handleSetPassword);
+document.getElementById('confirm-password-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSetPassword();
+});
+
 // ── INIT ──────────────────────────────────────────────────────
 (async () => {
+  // Check for invite token in URL hash
+  const params = getHashParams();
+  if (params.access_token && params.type === 'invite') {
+    // Store the session from the invite token
+    localStorage.setItem('sb_access_token', params.access_token);
+    if (params.refresh_token) localStorage.setItem('sb_refresh_token', params.refresh_token);
+    sbSession = { access_token: params.access_token };
+    // Show set password screen
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('set-password-screen').style.display = 'flex';
+    return;
+  }
+  // Normal login flow
   const session = await getSession();
   if (session) {
     sbSession = session;
