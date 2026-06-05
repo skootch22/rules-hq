@@ -549,6 +549,12 @@
   </style>
 </head>
 <body>
+<script>
+  // Redirect Supabase invite/recovery tokens to admin page
+  if (window.location.hash.includes('type=invite') || window.location.hash.includes('type=recovery')) {
+    window.location.replace('admin.html' + window.location.hash);
+  }
+</script>
 
 <header>
   <img id="header-logo" src="" alt="" class="logo-icon" style="display:none;">
