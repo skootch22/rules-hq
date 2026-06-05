@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TourneyNotes</title>
+  <style>
+    body {
+      background: #0a1628;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      font-family: sans-serif;
+      color: #8899b0;
+      font-size: .9rem;
+    }
+  </style>
+</head>
+<body>
+  <p>Redirecting…</p>
+  <script>
+    (function() {
+      var hash = window.location.hash.substring(1);
+      var params = new URLSearchParams(hash);
+      var type  = params.get('type');
+      var token = params.get('access_token');
+
+      if (token && (type === 'invite' || type === 'recovery')) {
+        window.location.replace('admin.html' + window.location.hash);
+      } else {
+        window.location.replace('index.html');
+      }
+    })();
+  </script>
+</body>
+</html>
