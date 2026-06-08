@@ -655,6 +655,11 @@
         </div>
 
         <div class="form-group">
+          <label>Per Inning Run Rule <span class="hint">leave blank if none</span></label>
+          <input type="number" id="f-run-rule" placeholder="e.g. 5" min="1" />
+        </div>
+
+        <div class="form-group">
           <label>Time Limit</label>
           <input type="text" id="f-time-limit" placeholder="e.g. 1:40" />
         </div>
@@ -1309,6 +1314,7 @@ const FIELDS = [
   ['f-gate-fee',         'gate_fee',          'text'],
   ['f-active',           'active',            'bool'],
   ['f-innings',          'innings',           'int'],
+  ['f-run-rule',         'run_rule',          'int'],
   ['f-time-limit',       'time_limit',        'text'],
   ['f-balks',            'balks',             'text'],
   ['f-courtesy-runner',  'courtesy_runner',   'text'],
