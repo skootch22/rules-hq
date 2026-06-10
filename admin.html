@@ -1574,15 +1574,35 @@ document.getElementById('btn-test-ical').addEventListener('click', async functio
   status.className = 'invite-status';
 
   try {
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
-    const text = await res.text();
-    if (!text.includes('BEGIN:VCALENDAR')) {
-      throw new Error('Response does not appear to be a valid iCal feed. First 100 chars: ' + text.substring(0, 100));
+    // Try multiple CORS proxies in sequence
+    const proxies = [
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+    ];
+
+    let text = null;
+    let lastError = '';
+
+    for (const proxyUrl of proxies) {
+      try {
+        const res = await fetch(proxyUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/calendar' }
+        });
+        if (res.ok) {
+          const t = await res.text();
+          if (t.includes('BEGIN:VCALENDAR')) { text = t; break; }
+        }
+        lastError = `${proxyUrl.split('?')[0]} returned ${res.status}`;
+      } catch (e) {
+        lastError = e.message;
+      }
     }
+
+    if (!text) throw new Error('All proxies failed. Last error: ' + lastError);
+
     const eventCount = (text.match(/BEGIN:VEVENT/g) || []).length;
-    status.textContent = `✓ Valid iCal feed found — ${eventCount} event${eventCount !== 1 ? 's' : ''} in the calendar.`;
+    status.textContent = `✓ Valid iCal feed — ${eventCount} event${eventCount !== 1 ? 's' : ''} in the calendar.`;
     status.className = 'invite-status success';
   } catch (err) {
     status.textContent = '⚠ ' + err.message;
