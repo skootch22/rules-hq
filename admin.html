@@ -763,6 +763,24 @@
     </div>
 
     <!-- Admins -->
+    <!-- Team Settings -->
+    <div class="section-header" style="margin-top:2rem;">
+      <span class="section-title">Team Settings</span>
+    </div>
+    <div class="invite-card">
+      <p class="invite-desc">Enter your GameChanger iCal URL to automatically show your team's schedule in the app. This applies to all tournaments — games are filtered by each tournament's date range.</p>
+      <div class="form-group" style="margin-bottom:.75rem;">
+        <label style="font-family:'Barlow Condensed',sans-serif; font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);">GameChanger iCal URL</label>
+        <input type="url" id="gamechanger-ical-input" placeholder="https://gcal.gc.com/ical/..." autocomplete="off"
+          style="width:100%; background:var(--navy); color:var(--light); border:1px solid var(--border); border-radius:7px; padding:.6rem .85rem; font-family:'Barlow',sans-serif; font-size:.88rem; margin-top:.35rem;" />
+      </div>
+      <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
+        <button class="btn-primary" id="btn-save-ical">Save</button>
+        <button class="btn-secondary" id="btn-test-ical">Test Feed</button>
+      </div>
+      <div class="invite-status" id="ical-status"></div>
+    </div>
+
     <div class="section-header" style="margin-top:2rem;">
       <span class="section-title">Team Admins</span>
     </div>
@@ -1017,10 +1035,12 @@ function showLogin() {
 }
 
 function showAdmin() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('admin-screen').style.display = 'block';
-  document.getElementById('btn-logout').style.display   = 'block';
+  document.getElementById('login-screen').style.display        = 'none';
+  document.getElementById('set-password-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display        = 'block';
+  document.getElementById('btn-logout').style.display          = 'block';
   loadTournaments();
+  loadTeamSettings();
 }
 
 // Login events
@@ -1489,6 +1509,81 @@ function escapeHTML(str) {
 function escapeAttr(str) {
   return String(str).replace(/'/g, "\\'");
 }
+
+// ── TEAM SETTINGS — GAMECHANGER iCAL ──────────────────────────
+async function loadTeamSettings() {
+  try {
+    const data = await sbFetch(`teams?id=eq.${CONFIG.TEAM_ID}`);
+    if (data && data.length) {
+      const ical = data[0].gamechanger_ical || '';
+      document.getElementById('gamechanger-ical-input').value = ical;
+    }
+  } catch (err) {
+    console.error('Failed to load team settings:', err);
+  }
+}
+
+document.getElementById('btn-save-ical').addEventListener('click', async function() {
+  const url    = document.getElementById('gamechanger-ical-input').value.trim();
+  const status = document.getElementById('ical-status');
+  const btn    = this;
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  status.textContent = '';
+  status.className = 'invite-status';
+
+  try {
+    await sbFetch(`teams?id=eq.${CONFIG.TEAM_ID}`, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ gamechanger_ical: url || null })
+    });
+    status.textContent = '✓ Saved successfully.';
+    status.className = 'invite-status success';
+  } catch (err) {
+    status.textContent = '⚠ ' + err.message;
+    status.className = 'invite-status error';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save';
+  }
+});
+
+document.getElementById('btn-test-ical').addEventListener('click', async function() {
+  const url    = document.getElementById('gamechanger-ical-input').value.trim();
+  const status = document.getElementById('ical-status');
+  const btn    = this;
+
+  if (!url) {
+    status.textContent = 'Please enter a URL first.';
+    status.className = 'invite-status error';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Testing…';
+  status.textContent = '';
+  status.className = 'invite-status';
+
+  try {
+    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+    if (!data.contents || !data.contents.includes('BEGIN:VCALENDAR')) {
+      throw new Error('URL does not appear to be a valid iCal feed.');
+    }
+    // Count events
+    const eventCount = (data.contents.match(/BEGIN:VEVENT/g) || []).length;
+    status.textContent = `✓ Valid iCal feed found — ${eventCount} event${eventCount !== 1 ? 's' : ''} in the calendar.`;
+    status.className = 'invite-status success';
+  } catch (err) {
+    status.textContent = '⚠ Could not read feed. Check the URL and try again.';
+    status.className = 'invite-status error';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Test Feed';
+  }
+});
 
 // ── INVITE ADMIN ──────────────────────────────────────────────
 document.getElementById('btn-invite').addEventListener('click', async function() {
