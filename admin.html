@@ -768,10 +768,10 @@
       <span class="section-title">Team Settings</span>
     </div>
     <div class="invite-card">
-      <p class="invite-desc">Enter your GameChanger iCal URL to automatically show your team's schedule in the app. This applies to all tournaments — games are filtered by each tournament's date range.</p>
+      <p class="invite-desc">Enter your GameChanger iCal URL to automatically show your team's schedule in the app. This applies to all tournaments — games are filtered by each tournament's date range. You can paste the <strong style="color:var(--light)">webcal://</strong> link directly from GameChanger — it will be converted automatically.</p>
       <div class="form-group" style="margin-bottom:.75rem;">
         <label style="font-family:'Barlow Condensed',sans-serif; font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);">GameChanger iCal URL</label>
-        <input type="url" id="gamechanger-ical-input" placeholder="https://gcal.gc.com/ical/..." autocomplete="off"
+        <input type="text" id="gamechanger-ical-input" placeholder="webcal:// or https://..." autocomplete="off"
           style="width:100%; background:var(--navy); color:var(--light); border:1px solid var(--border); border-radius:7px; padding:.6rem .85rem; font-family:'Barlow',sans-serif; font-size:.88rem; margin-top:.35rem;" />
       </div>
       <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
@@ -1524,9 +1524,13 @@ async function loadTeamSettings() {
 }
 
 document.getElementById('btn-save-ical').addEventListener('click', async function() {
-  const url    = document.getElementById('gamechanger-ical-input').value.trim();
+  const raw    = document.getElementById('gamechanger-ical-input').value.trim();
+  const url    = raw.replace(/^webcal:\/\//i, 'https://');
   const status = document.getElementById('ical-status');
   const btn    = this;
+
+  // Update the input to show the converted URL
+  if (raw !== url) document.getElementById('gamechanger-ical-input').value = url;
 
   btn.disabled = true;
   btn.textContent = 'Saving…';
@@ -1551,9 +1555,12 @@ document.getElementById('btn-save-ical').addEventListener('click', async functio
 });
 
 document.getElementById('btn-test-ical').addEventListener('click', async function() {
-  const url    = document.getElementById('gamechanger-ical-input').value.trim();
+  const raw    = document.getElementById('gamechanger-ical-input').value.trim();
+  const url    = raw.replace(/^webcal:\/\//i, 'https://');
   const status = document.getElementById('ical-status');
   const btn    = this;
+
+  if (raw !== url) document.getElementById('gamechanger-ical-input').value = url;
 
   if (!url) {
     status.textContent = 'Please enter a URL first.';
