@@ -1574,17 +1574,18 @@ document.getElementById('btn-test-ical').addEventListener('click', async functio
   status.className = 'invite-status';
 
   try {
-    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
-    if (!data.contents || !data.contents.includes('BEGIN:VCALENDAR')) {
-      throw new Error('URL does not appear to be a valid iCal feed.');
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
+    const text = await res.text();
+    if (!text.includes('BEGIN:VCALENDAR')) {
+      throw new Error('Response does not appear to be a valid iCal feed. First 100 chars: ' + text.substring(0, 100));
     }
-    // Count events
-    const eventCount = (data.contents.match(/BEGIN:VEVENT/g) || []).length;
+    const eventCount = (text.match(/BEGIN:VEVENT/g) || []).length;
     status.textContent = `✓ Valid iCal feed found — ${eventCount} event${eventCount !== 1 ? 's' : ''} in the calendar.`;
     status.className = 'invite-status success';
   } catch (err) {
-    status.textContent = '⚠ Could not read feed. Check the URL and try again.';
+    status.textContent = '⚠ ' + err.message;
     status.className = 'invite-status error';
   } finally {
     btn.disabled = false;
