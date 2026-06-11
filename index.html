@@ -1370,24 +1370,22 @@ async function loadSchedule(tournament) {
   list.innerHTML = '<div class="game-card-loading">Loading schedule…</div>';
 
   try {
-    const proxies = [
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(window._gcIcalUrl)}`,
-      `https://corsproxy.io/?${encodeURIComponent(window._gcIcalUrl)}`,
-      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(window._gcIcalUrl)}`,
-    ];
+    const res = await fetch(
+      `${CONFIG.SUPABASE_URL}/functions/v1/fetch-ical`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': CONFIG.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({ url: window._gcIcalUrl })
+      }
+    );
+    const data = await res.json();
+    if (!res.ok || !data.ical) throw new Error(data.error || 'Could not fetch schedule.');
 
-    let text = null;
-    for (const proxy of proxies) {
-      try {
-        const res = await fetch(proxy);
-        if (res.ok) {
-          const t = await res.text();
-          if (t.includes('BEGIN:VCALENDAR')) { text = t; break; }
-        }
-      } catch (e) { continue; }
-    }
-
-    if (!text) throw new Error('Could not fetch schedule.');
+    const text = data.ical;
 
     const start = new Date(tournament.startDate + 'T00:00:00');
     const end   = new Date(tournament.endDate   + 'T23:59:59');
