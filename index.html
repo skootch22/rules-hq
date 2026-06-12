@@ -1404,7 +1404,12 @@ async function loadSchedule(tournament) {
       // Extract opponent from "Team A vs Team B" format
       let opponent = e.summary;
       let extracted = false;
-      const vsParts = e.summary.split(/\s+vs\.?\s+/i);
+      let isAway = false;
+      let vsParts = e.summary.split(/\s+vs\.?\s+/i);
+      if (vsParts.length !== 2) {
+        vsParts = e.summary.split(/\s+@\s+/);
+        if (vsParts.length === 2) isAway = true;
+      }
       if (vsParts.length === 2) {
         const teamName = (window._gcTeamName || '').toLowerCase().trim();
         const part0 = vsParts[0].trim();
@@ -1419,6 +1424,7 @@ async function loadSchedule(tournament) {
           opponent = part0; extracted = true;
         }
       }
+      const prefix = extracted ? (isAway ? '@ ' : 'vs ') : '';
       return `
       <div class="game-card">
         <div class="game-card-left">
@@ -1426,7 +1432,7 @@ async function loadSchedule(tournament) {
           <div class="game-card-time">${escapeHTML(formatGameTime(e.date))}</div>
         </div>
         <div class="game-card-right">
-          <div class="game-card-opponent">${extracted ? 'vs ' : ''}${escapeHTML(opponent)}</div>
+          <div class="game-card-opponent">${prefix}${escapeHTML(opponent)}</div>
           ${e.location ? `<div class="game-card-location">📍 ${escapeHTML(e.location)}</div>` : ''}
         </div>
       </div>`;
