@@ -774,6 +774,11 @@
         <input type="text" id="gamechanger-ical-input" placeholder="webcal:// or https://..." autocomplete="off"
           style="width:100%; background:var(--navy); color:var(--light); border:1px solid var(--border); border-radius:7px; padding:.6rem .85rem; font-family:'Barlow',sans-serif; font-size:.88rem; margin-top:.35rem;" />
       </div>
+      <div class="form-group" style="margin-bottom:.75rem;">
+        <label style="font-family:'Barlow Condensed',sans-serif; font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);">Your Team Name in GameChanger <span class="hint">used to show just the opponent</span></label>
+        <input type="text" id="gamechanger-team-name-input" placeholder="e.g. OV Xpress 14u" autocomplete="off"
+          style="width:100%; background:var(--navy); color:var(--light); border:1px solid var(--border); border-radius:7px; padding:.6rem .85rem; font-family:'Barlow',sans-serif; font-size:.88rem; margin-top:.35rem;" />
+      </div>
       <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
         <button class="btn-primary" id="btn-save-ical">Save</button>
         <button class="btn-secondary" id="btn-test-ical">Test Feed</button>
@@ -1515,8 +1520,8 @@ async function loadTeamSettings() {
   try {
     const data = await sbFetch(`teams?id=eq.${CONFIG.TEAM_ID}`);
     if (data && data.length) {
-      const ical = data[0].gamechanger_ical || '';
-      document.getElementById('gamechanger-ical-input').value = ical;
+      document.getElementById('gamechanger-ical-input').value = data[0].gamechanger_ical || '';
+      document.getElementById('gamechanger-team-name-input').value = data[0].gamechanger_team_name || '';
     }
   } catch (err) {
     console.error('Failed to load team settings:', err);
@@ -1541,7 +1546,10 @@ document.getElementById('btn-save-ical').addEventListener('click', async functio
     await sbFetch(`teams?id=eq.${CONFIG.TEAM_ID}`, {
       method: 'PATCH',
       headers: { 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ gamechanger_ical: url || null })
+      body: JSON.stringify({
+        gamechanger_ical: url || null,
+        gamechanger_team_name: document.getElementById('gamechanger-team-name-input').value.trim() || null
+      })
     });
     status.textContent = '✓ Saved successfully.';
     status.className = 'invite-status success';
