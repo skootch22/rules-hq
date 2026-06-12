@@ -1015,8 +1015,9 @@ async function loadSheet() {
       ).then(r => r.json()).catch(() => [])
     ]);
 
-    // Store iCal URL for schedule loading
+    // Store iCal URL and team name for schedule loading
     window._gcIcalUrl = (teamData && teamData[0]) ? teamData[0].gamechanger_ical || '' : '';
+    window._gcTeamName = (teamData && teamData[0]) ? teamData[0].gamechanger_team_name || '' : '';
 
     if (!Array.isArray(data)) throw new Error('Unexpected response from database.');
 
@@ -1399,17 +1400,37 @@ async function loadSchedule(tournament) {
       return;
     }
 
-    list.innerHTML = events.map(e => `
+    list.innerHTML = events.map(e => {
+      // Extract opponent from "Team A vs Team B" format
+      let opponent = e.summary;
+      let extracted = false;
+      const vsParts = e.summary.split(/\s+vs\.?\s+/i);
+      if (vsParts.length === 2) {
+        const teamName = (window._gcTeamName || '').toLowerCase().trim();
+        const part0 = vsParts[0].trim();
+        const part1 = vsParts[1].trim();
+        if (teamName && part0.toLowerCase() === teamName) {
+          opponent = part1; extracted = true;
+        } else if (teamName && part1.toLowerCase() === teamName) {
+          opponent = part0; extracted = true;
+        } else if (teamName && part0.toLowerCase().includes(teamName)) {
+          opponent = part1; extracted = true;
+        } else if (teamName && part1.toLowerCase().includes(teamName)) {
+          opponent = part0; extracted = true;
+        }
+      }
+      return `
       <div class="game-card">
         <div class="game-card-left">
           <div class="game-card-day">${escapeHTML(formatGameDay(e.date))}</div>
           <div class="game-card-time">${escapeHTML(formatGameTime(e.date))}</div>
         </div>
         <div class="game-card-right">
-          <div class="game-card-opponent">${escapeHTML(e.summary)}</div>
+          <div class="game-card-opponent">${extracted ? 'vs ' : ''}${escapeHTML(opponent)}</div>
           ${e.location ? `<div class="game-card-location">📍 ${escapeHTML(e.location)}</div>` : ''}
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
   } catch (err) {
     list.innerHTML = '<div class="game-card-loading">Could not load schedule.</div>';
