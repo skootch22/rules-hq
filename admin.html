@@ -1039,6 +1039,15 @@ function showLogin() {
   document.getElementById('login-error').textContent          = '';
 }
 
+async function checkTeamMembership() {
+  try {
+    const data = await sbFetch(`team_members?team_id=eq.${CONFIG.TEAM_ID}&select=team_id`);
+    return Array.isArray(data) && data.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 function showAdmin() {
   document.getElementById('login-screen').style.display        = 'none';
   document.getElementById('set-password-screen').style.display = 'none';
@@ -1064,6 +1073,12 @@ async function handleLogin() {
   err.textContent = '';
   try {
     await signIn(email, pw);
+    const isMember = await checkTeamMembership();
+    if (!isMember) {
+      await signOut();
+      document.getElementById('login-error').textContent = 'This account is not authorized for this team.';
+      return;
+    }
     showAdmin();
   } catch (e) {
     err.textContent = e.message;
@@ -1722,6 +1737,12 @@ document.getElementById('confirm-password-input').addEventListener('keydown', e 
   const session = await getSession();
   if (session) {
     sbSession = session;
+    const isMember = await checkTeamMembership();
+    if (!isMember) {
+      await signOut();
+      document.getElementById('login-error').textContent = 'This account is not authorized for this team.';
+      return;
+    }
     showAdmin();
   }
 })();
