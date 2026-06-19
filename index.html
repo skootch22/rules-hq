@@ -1437,7 +1437,7 @@ async function loadSchedule(tournament) {
         </div>
         <div class="game-card-right">
           <div class="game-card-opponent">${prefix}${escapeHTML(opponent)}</div>
-          ${e.location ? `<div class="game-card-location">📍 ${escapeHTML(e.location)}</div>` : ''}
+          ${e.location ? `<div class="game-card-location">${escapeHTML(e.location)}</div>` : ''}
         </div>
       </div>`;
     }).join('');
