@@ -756,6 +756,14 @@
       </div>
     </div>
 
+    <div class="rule-card" id="r-bat-card" style="display:none;">
+      <div class="rule-card-head">
+        <span class="rc-icon">🏏</span>
+        <span class="rc-label">Bat Restrictions</span>
+      </div>
+      <div class="rule-card-body" id="r-bat"></div>
+    </div>
+
     <div class="rule-card" id="r-notes-card" style="display:none;">
       <div class="rule-card-head">
         <span class="rc-icon">📝</span>
@@ -1039,6 +1047,7 @@ async function loadSheet() {
       endDate:         r.end_date              || '',
       droppedThird:    r.dropped_third_strike  ? 'Yes' : '',
       stealing:        r.stealing_rules        || '',
+      batRestrictions: r.bat_restrictions      || '',
       fieldType:       (r.field_type           || '').toLowerCase(),
       substitution:    r.substitution_rules    || '',
       fieldAddress:    r.field_address         || '',
@@ -1284,6 +1293,15 @@ function showRules(t) {
     droppedCard.style.display = 'none';
   }
   baserunningRow.style.display = (t.stealing || t.droppedThird) ? 'grid' : 'none';
+
+  // Bat Restrictions (optional)
+  const batCard = document.getElementById('r-bat-card');
+  if (t.batRestrictions) {
+    document.getElementById('r-bat').innerHTML = renderMarkdown(t.batRestrictions);
+    batCard.style.display = 'block';
+  } else {
+    batCard.style.display = 'none';
+  }
 
   // Notes
   const notesCard = document.getElementById('r-notes-card');
