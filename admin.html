@@ -730,6 +730,11 @@
           <textarea id="f-stealing-rules" placeholder="e.g. No stealing until the ball crosses home plate"></textarea>
         </div>
 
+        <div class="form-group full">
+          <label>Bat Restrictions <span class="hint">markdown supported</span></label>
+          <textarea id="f-bat-restrictions" placeholder="e.g.&#10;- USA Bat stamp required&#10;- No BBCOR bats&#10;- Barrel diameter max 2 5/8&quot;"></textarea>
+        </div>
+
         <hr class="form-section-divider" />
         <div class="form-section-label" style="grid-column:1/-1; display:flex; align-items:center; justify-content:space-between;">
           Hotels (optional)
@@ -1366,6 +1371,7 @@ const FIELDS = [
   ['f-tie-breakers',     'tie_breakers',      'text'],
   ['f-substitution-rules','substitution_rules','text'],
   ['f-stealing-rules',   'stealing_rules',    'text'],
+  ['f-bat-restrictions', 'bat_restrictions',  'text'],
   ['f-notes',            'notes',             'text'],
 ];
 
