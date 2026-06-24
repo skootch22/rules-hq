@@ -654,6 +654,7 @@
       <div class="info-row" id="r-info-row" style="display:none;"></div>
       <div id="r-field-type" style="display:none;"></div>
       <div id="r-gate-fee" style="display:none; margin-top:.3rem; font-size:.75rem; color:var(--title-bar-text, rgba(255,255,255,.85)); opacity:.9; font-weight:600;">🎟️ Gate Fee: <span id="r-gate-fee-value"></span></div>
+      <div id="r-pay-at-plate" style="display:none; margin-top:.3rem; font-size:.75rem; color:var(--title-bar-text, rgba(255,255,255,.85)); opacity:.9; font-weight:600;">💵 Pay at the Plate: <span id="r-pay-at-plate-value"></span></div>
     </div>
   </div>
 
@@ -1053,6 +1054,7 @@ async function loadSheet() {
       fieldAddress:    r.field_address         || '',
       guaranteedGames: r.guaranteed_games      ? String(r.guaranteed_games) : '',
       gateFee:         r.gate_fee              || '',
+      payAtPlate:      r.pay_at_plate          || '',
       numTeams:        r.num_teams             ? String(r.num_teams) : '',
       tournamentUrl:   r.tournament_url        || '',
       hotels:          Array.isArray(hotelsData) ? hotelsData.filter(h => h.tournament_id === r.id) : [],
@@ -1236,6 +1238,14 @@ function showRules(t) {
     gateFeeEl.style.display = 'block';
   } else {
     gateFeeEl.style.display = 'none';
+  }
+
+  const payAtPlateEl = document.getElementById('r-pay-at-plate');
+  if (t.payAtPlate) {
+    document.getElementById('r-pay-at-plate-value').textContent = t.payAtPlate;
+    payAtPlateEl.style.display = 'block';
+  } else {
+    payAtPlateEl.style.display = 'none';
   }
 
   // Field type badge
