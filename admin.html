@@ -585,6 +585,17 @@
       <div class="form-title" id="form-title">Add Tournament</div>
       <div class="form-grid">
 
+        <!-- AI Import -->
+        <div class="full" style="background:rgba(56,189,248,.07); border:1px solid rgba(56,189,248,.25); border-radius:10px; padding:.85rem 1rem; margin-bottom:.25rem;">
+          <div style="font-size:.78rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:.5rem;">✨ Import from Rules URL</div>
+          <div style="font-size:.75rem; color:var(--text-muted); margin-bottom:.65rem;">Paste a link to the tournament rules page and we'll fill in the fields automatically. Review before saving.</div>
+          <div style="display:flex; gap:.5rem; align-items:center;">
+            <input type="url" id="ai-rules-url" placeholder="https://tournament.com/rules" style="flex:1; font-size:.82rem;" />
+            <button type="button" id="btn-analyze" class="btn-secondary" style="white-space:nowrap; font-size:.78rem; padding:.45rem .9rem;">Analyze</button>
+          </div>
+          <div id="ai-status" style="font-size:.73rem; margin-top:.45rem; display:none;"></div>
+        </div>
+
         <div class="form-section-label">Basic Info</div>
 
         <div class="form-group full">
@@ -1456,6 +1467,85 @@ function hideForm() {
 
 document.getElementById('btn-add').addEventListener('click', openAdd);
 document.getElementById('btn-cancel').addEventListener('click', hideForm);
+
+// ── AI Rules Import ──────────────────────────────────────────────
+document.getElementById('btn-analyze').addEventListener('click', async () => {
+  const url    = document.getElementById('ai-rules-url').value.trim();
+  const status = document.getElementById('ai-status');
+  const btn    = document.getElementById('btn-analyze');
+  if (!url) { status.style.display='block'; status.style.color='#f87171'; status.textContent='Please enter a URL.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Analyzing…';
+  status.style.display = 'block';
+  status.style.color = 'var(--accent)';
+  status.textContent = '⏳ Fetching and analyzing rules…';
+
+  try {
+    const res  = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/analyze-rules`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` },
+      body: JSON.stringify({ url })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) throw new Error(json.error || 'Analysis failed');
+
+    const d = json.data;
+    let filled = 0;
+
+    // Helper to set a text field and highlight it
+    const fill = (id, val) => {
+      if (val == null || val === '') return;
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.value = val;
+      el.style.borderColor = '#38bdf8';
+      el.style.background  = 'rgba(56,189,248,.08)';
+      filled++;
+    };
+    // Helper for select dropdowns
+    const fillSelect = (id, val) => {
+      if (val == null || val === '') return;
+      const el = document.getElementById(id);
+      if (!el) return;
+      for (const opt of el.options) {
+        if (opt.value === val) { el.value = val; el.style.borderColor = '#38bdf8'; filled++; break; }
+      }
+    };
+
+    fill('f-tournament-url', url);
+    fill('f-mercy-rule',       d.mercy_rule);
+    fill('f-pitching-limits',  d.pitching_limits);
+    fill('f-stealing-rules',   d.stealing_rules);
+    fill('f-bat-restrictions', d.bat_restrictions);
+    fill('f-extra-innings',    d.extra_innings);
+    fill('f-tie-breakers',     d.tie_breakers);
+    fill('f-substitution-rules', d.substitution_rules);
+    fill('f-time-limit',       d.time_limit);
+    fill('f-innings',          d.innings);
+    fill('f-run-rule',         d.run_rule);
+    fill('f-guaranteed-games', d.guaranteed_games);
+    fill('f-gate-fee',         d.gate_fee);
+    fill('f-pay-at-plate',     d.pay_at_plate);
+    fill('f-notes',            d.notes);
+    fillSelect('f-balks',           d.balks);
+    fillSelect('f-courtesy-runner', d.courtesy_runner);
+    fillSelect('f-field-type',      d.field_type);
+    if (d.dropped_third_strike != null) {
+      const el = document.getElementById('f-dropped-third');
+      if (el) { el.checked = !!d.dropped_third_strike; el.style.outlineColor = '#38bdf8'; filled++; }
+    }
+
+    status.style.color = '#4ade80';
+    status.textContent = `✅ ${filled} field${filled !== 1 ? 's' : ''} filled — review and make any corrections before saving.`;
+  } catch (err) {
+    status.style.color = '#f87171';
+    status.textContent = `❌ ${err.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Analyze';
+  }
+});
 
 document.getElementById('btn-save').addEventListener('click', async () => {
   const name = getEl('f-tournament').value.trim();
