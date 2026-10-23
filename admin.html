@@ -1394,6 +1394,20 @@ const FIELDS = [
 
 function getEl(id) { return document.getElementById(id); }
 
+function clearAiHighlights() {
+  FIELDS.forEach(([elId]) => {
+    const el = getEl(elId);
+    if (!el) return;
+    el.style.borderColor = '';
+    el.style.background  = '';
+    el.style.outlineColor = '';
+  });
+  const status = document.getElementById('ai-status');
+  if (status) { status.style.display = 'none'; status.textContent = ''; }
+  const urlInput = document.getElementById('ai-rules-url');
+  if (urlInput) urlInput.value = '';
+}
+
 function clearForm() {
   FIELDS.forEach(([elId, , type]) => {
     const el = getEl(elId);
@@ -1401,6 +1415,7 @@ function clearForm() {
     if (type === 'bool') el.checked = elId === 'f-active'; // active defaults to true
     else el.value = '';
   });
+  clearAiHighlights();
 }
 
 function formFromRecord(t) {
@@ -1411,6 +1426,7 @@ function formFromRecord(t) {
     if (type === 'bool') el.checked = !!val;
     else el.value = val ?? '';
   });
+  clearAiHighlights();
 }
 
 function recordFromForm() {
