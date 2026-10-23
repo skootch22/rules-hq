@@ -587,12 +587,13 @@
 
         <!-- AI Import -->
         <div class="full" style="background:rgba(56,189,248,.07); border:1px solid rgba(56,189,248,.25); border-radius:10px; padding:.85rem 1rem; margin-bottom:.25rem;">
-          <div style="font-size:.78rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:.5rem;">✨ Import from Rules URL</div>
-          <div style="font-size:.75rem; color:var(--text-muted); margin-bottom:.65rem;">Paste a link to the tournament rules page and we'll fill in the fields automatically. Review before saving.</div>
-          <div style="display:flex; gap:.5rem; align-items:center;">
-            <input type="url" id="ai-rules-url" placeholder="https://tournament.com/rules" style="flex:1; font-size:.82rem;" />
-            <button type="button" id="btn-analyze" class="btn-secondary" style="white-space:nowrap; font-size:.78rem; padding:.45rem .9rem;">Analyze</button>
+          <div style="font-size:.78rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:.5rem;">✨ AI Rules Import</div>
+          <div style="font-size:.75rem; color:var(--text-muted); margin-bottom:.65rem;">Paste a rules URL <em>or</em> copy/paste the rules text directly. We'll fill in the fields automatically — review before saving.</div>
+          <div style="display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem;">
+            <input type="url" id="ai-rules-url" placeholder="https://tournament.com/rules  (optional)" style="flex:1; font-size:.82rem;" />
           </div>
+          <textarea id="ai-rules-text" placeholder="Or paste rules text here…" style="width:100%; font-size:.78rem; min-height:70px; margin-bottom:.5rem; resize:vertical;"></textarea>
+          <button type="button" id="btn-analyze" class="btn-secondary" style="font-size:.78rem; padding:.45rem .9rem;">Analyze</button>
           <div id="ai-status" style="font-size:.73rem; margin-top:.45rem; display:none;"></div>
         </div>
 
@@ -1406,6 +1407,8 @@ function clearAiHighlights() {
   if (status) { status.style.display = 'none'; status.textContent = ''; }
   const urlInput = document.getElementById('ai-rules-url');
   if (urlInput) urlInput.value = '';
+  const textInput = document.getElementById('ai-rules-text');
+  if (textInput) textInput.value = '';
 }
 
 function clearForm() {
@@ -1487,9 +1490,10 @@ document.getElementById('btn-cancel').addEventListener('click', hideForm);
 // ── AI Rules Import ──────────────────────────────────────────────
 document.getElementById('btn-analyze').addEventListener('click', async () => {
   const url    = document.getElementById('ai-rules-url').value.trim();
+  const text   = document.getElementById('ai-rules-text').value.trim();
   const status = document.getElementById('ai-status');
   const btn    = document.getElementById('btn-analyze');
-  if (!url) { status.style.display='block'; status.style.color='#f87171'; status.textContent='Please enter a URL.'; return; }
+  if (!url && !text) { status.style.display='block'; status.style.color='#f87171'; status.textContent='Please enter a URL or paste rules text.'; return; }
 
   btn.disabled = true;
   btn.textContent = 'Analyzing…';
@@ -1501,7 +1505,7 @@ document.getElementById('btn-analyze').addEventListener('click', async () => {
     const res  = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/analyze-rules`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` },
-      body: JSON.stringify({ url })
+      body: JSON.stringify(text ? { text } : { url })
     });
     const json = await res.json();
     if (!res.ok || !json.success) throw new Error(json.error || 'Analysis failed');
@@ -1529,7 +1533,7 @@ document.getElementById('btn-analyze').addEventListener('click', async () => {
       }
     };
 
-    fill('f-tournament-url', url);
+    fill('f-rules-url', url);
     fill('f-mercy-rule',       d.mercy_rule);
     fill('f-pitching-limits',  d.pitching_limits);
     fill('f-stealing-rules',   d.stealing_rules);
