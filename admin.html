@@ -1521,9 +1521,9 @@ document.getElementById('btn-analyze').addEventListener('click', async () => {
       body: JSON.stringify({ url, ageGroup: ageGroup || null })
     });
     const json = await res.json();
-    if (!res.ok || !json.success) throw new Error(json.error || 'Analysis failed');
+    if (!res.ok || !json.extracted) throw new Error(json.error || 'Analysis failed');
 
-    const d = json.data;
+    const d = json.extracted;
     let filled = 0;
 
     // Helper to set a text field and highlight it
