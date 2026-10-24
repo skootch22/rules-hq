@@ -588,8 +588,22 @@
         <!-- AI Import -->
         <div class="full" style="background:rgba(56,189,248,.07); border:1px solid rgba(56,189,248,.25); border-radius:10px; padding:.85rem 1rem; margin-bottom:.25rem;">
           <div style="font-size:.78rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:.5rem;">✨ AI Rules Import</div>
-          <div style="font-size:.75rem; color:var(--text-muted); margin-bottom:.65rem;">Paste a rules URL <em>or</em> copy/paste the rules text directly. We'll fill in the fields automatically — review before saving.</div>
+          <div style="font-size:.75rem; color:var(--text-muted); margin-bottom:.65rem;">Paste a link to the tournament rules page. Select your age group first for best results.</div>
           <div style="display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem;">
+            <select id="ai-age-group" style="font-size:.82rem; width:110px; flex-shrink:0;">
+              <option value="">Age group</option>
+              <option value="8U">8U</option>
+              <option value="9U">9U</option>
+              <option value="10U">10U</option>
+              <option value="11U">11U</option>
+              <option value="12U">12U</option>
+              <option value="13U">13U</option>
+              <option value="14U">14U</option>
+              <option value="15U">15U</option>
+              <option value="16U">16U</option>
+              <option value="17U">17U</option>
+              <option value="18U">18U</option>
+            </select>
             <input type="url" id="ai-rules-url" placeholder="https://tournament.com/rules" style="flex:1; font-size:.82rem;" />
             <button type="button" id="btn-analyze" class="btn-secondary" style="white-space:nowrap; font-size:.78rem; padding:.45rem .9rem;">Analyze</button>
           </div>
@@ -1406,6 +1420,8 @@ function clearAiHighlights() {
   if (status) { status.style.display = 'none'; status.textContent = ''; }
   const urlInput = document.getElementById('ai-rules-url');
   if (urlInput) urlInput.value = '';
+  const ageInput = document.getElementById('ai-age-group');
+  if (ageInput) ageInput.value = '';
 }
 
 function clearForm() {
@@ -1486,9 +1502,10 @@ document.getElementById('btn-cancel').addEventListener('click', hideForm);
 
 // ── AI Rules Import ──────────────────────────────────────────────
 document.getElementById('btn-analyze').addEventListener('click', async () => {
-  const url    = document.getElementById('ai-rules-url').value.trim();
-  const status = document.getElementById('ai-status');
-  const btn    = document.getElementById('btn-analyze');
+  const url      = document.getElementById('ai-rules-url').value.trim();
+  const ageGroup = document.getElementById('ai-age-group').value.trim();
+  const status   = document.getElementById('ai-status');
+  const btn      = document.getElementById('btn-analyze');
   if (!url) { status.style.display='block'; status.style.color='#f87171'; status.textContent='Please enter a URL.'; return; }
 
   btn.disabled = true;
@@ -1501,7 +1518,7 @@ document.getElementById('btn-analyze').addEventListener('click', async () => {
     const res  = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/analyze-rules`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` },
-      body: JSON.stringify({ url })
+      body: JSON.stringify({ url, ageGroup: ageGroup || null })
     });
     const json = await res.json();
     if (!res.ok || !json.success) throw new Error(json.error || 'Analysis failed');
